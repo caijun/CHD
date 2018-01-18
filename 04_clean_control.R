@@ -1,23 +1,11 @@
 rm(list = ls())
-setwd("~/Downloads/FengYu/")
 
-source("src/helper.R")
+source("R/helper.R")
 
-library(plyr)
+load("output/control_combine.rda")
+
 library(tidyverse)
-
-dat.nanjing <- read.csv("dat/control.csv", fileEncoding = "utf8")
-dat.nanjing$编号 <- paste0("nj", dat.nanjing$编号)
-dat.suzhou <- read.csv("dat/control_suzhou.csv", fileEncoding = "utf8")
-dat.suzhou$编号 <- paste0("sz", dat.suzhou$编号)
-dat.nanjing1 <- read.csv("dat/control_new.csv", fileEncoding = "utf8")
-dat.nanjing1$编号 <- paste0("nj_new", dat.nanjing1$编号)
-dat.nanjing2 <- read.csv("dat/control_newnew.csv", fileEncoding = "utf8")
-dat.nanjing2$编号 <- paste0("nj_newnew", dat.nanjing2$编号)
-dat <- rbind(dat.nanjing, dat.suzhou, dat.nanjing1, dat.nanjing2)
-write.csv(dat, file = "dat/control_combine.csv", fileEncoding = "utf8", row.names = F)
-library(xlsx)
-write.xlsx(dat, file = "dat/control_combine.xlsx")
+# check each variable ----------------------------------------------------------
 names(dat)
 names(dat) <- c("id" # 编号
                 , "input.date" # 登陆日期

@@ -52,33 +52,26 @@ names(dat) <- c("id" # 编号
                 )
 names(dat)
 
+# check duplicated cases: no duplicated cases
+d1 <- dat %>% 
+  select(id, surgery.date, residence, sex, age)
+# unique cases based on surgery date, residence, sex, and age
+d2 <- d1 %>% 
+  distinct(surgery.date, residence, sex, age, .keep_all = TRUE)
+setdiff(d1$id, d2$id)
+c <- subset(dat, id == "nj_new565")
+c1 <- subset(dat, surgery.date == "20160806" & residence == "南京" & sex == "女" 
+             & age == "1岁5月")
+
 # check 母亲、父亲生子年龄
 mean(dat$M.production.age)
 mean(dat$F.production.age)
-
-# check duplicated cases
-x <- dat %>% 
-  select(id, surgery.date, residence, sex, age)
-y <- x %>% 
-  distinct(surgery.date, residence, sex, age, .keep_all = TRUE)
-setdiff(x$id, y$id)
-z <- subset(dat, id == "nj_new565")
-t <- subset(dat, surgery.date == "20160806" & residence == "南京" & sex == "女" & age == "1岁5月")
-
-# # 血型: 有研究表明没有影响
-# unique(dat$blood.type)
-# dat <- dat %>%
-#   mutate(blood.type = as.character(blood.type)) %>% 
-#   mutate(blood.type = case_when(
-#     .$blood.type == "" ~ as.character(NA), 
-#     TRUE ~ .$blood.type
-#   ))
-# table(dat$blood.type, useNA = "ifany")
 
 # 手术日期
 dat <- dat %>%
   mutate(surgery.date = as.Date(as.character(surgery.date), "%Y%m%d")) %>%
   filter(!is.na(surgery.date))
+x <- subset(dat, is.na(surgery.date))
 range(dat$surgery.date)
 x <- table(dat$surgery.date, useNA = "ifany")
 plot(x, ylab = "No. of surgeries")

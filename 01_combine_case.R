@@ -2,7 +2,7 @@ rm(list = ls())
 
 library(xlsx)
 
-# combine multiple data files into one -----------------------------------------
+# combine multiple data files of cases into one --------------------------------
 dat.nj <- read.xlsx("~/Downloads/FengYu/raw/网上手术登记11-1(diagnosis).xls", 
                     sheetName = "case")
 # 编号2133不存在
