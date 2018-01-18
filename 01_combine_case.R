@@ -22,9 +22,6 @@ dat.nj2 <- read.xlsx("~/Downloads/FengYu/raw/2017 update.xlsx",
                      sheetName = "case")
 dat.nj2$编号 <- paste0("nj_2017new", dat.nj2$编号)
 
-setdiff(names(dat.nj), names(dat.nj2))
-setdiff(names(dat.nj2), names(dat.nj))
-
 dat <- rbind(dat.nj, dat.sz, dat.nj1, dat.nj2)
 write.xlsx(dat, file = "output/case_combine.xlsx")
 save(dat, file = "output/case_combine.rda")

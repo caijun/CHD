@@ -1,6 +1,6 @@
 rm(list = ls())
 
-source("src/helper.R")
+source("R/helper.R")
 
 load("output/case_combine.rda")
 
@@ -8,7 +8,6 @@ library(tidyverse)
 # check each variable ----------------------------------------------------------
 names(dat)
 names(dat) <- c("id" # 编号
-                # , "blood.type" # 血型
                 , "surgery.date" # 手术日期
                 , "residence" # 居住地
                 , "sex" # 性别
