@@ -1,0 +1,159 @@
+---
+title: "Modeling for Congenital Heart Disease"
+author: "Jun Cai"
+date: "24 Oct, 2016"
+output: pdf_document
+header-includes:
+- \usepackage{longtable}
+---
+
+# 1. Data Preparation
+```{r,results='hide',message=FALSE}
+rm(list = ls())
+setwd("~/Downloads/FengYu/")
+
+library(tidyverse)
+
+case <- readRDS("case.rds")
+names(case)
+case <- case %>%
+  select(-residence, -id, -blood.type, -age, -surgery.date, -gravidity.parity, 
+         -M.smoke, -M.smoke.start.age, -M.pregnancy.flu, -M.pregnancy.med, 
+         -F.smoke, -F.smoke.start.age, -(fullname:county), -(year:day), -age.y) %>%
+  mutate(diagnosis = 1) %>%
+  filter(!is.na(sex)) %>%   # 92 cases with NA sex info
+  filter(M.smoked.years >= 0) %>% # 1 case whose M.production.age is less than M.smoke.start.age
+  select(diagnosis, sex, term:F.smoked.years)
+which(is.na(case), arr.ind = TRUE)
+
+control <- readRDS("control.rds")
+names(control)
+control <- control %>%
+  select(-residence, -id, -input.date, -age, -gravidity.parity, -M.smoke, 
+         -M.smoke.start.age, -M.pregnancy.flu, -M.pregnancy.med, -F.smoke, 
+         -F.smoke.start.age, -(fullname:county), -(year:day), -age.y) %>%
+  mutate(diagnosis = 0) %>%
+  filter(!is.na(F.drink)) %>% # 1 case with NA F.drink:IR.congenital.disease info
+  select(diagnosis, sex:F.smoked.years)
+which(is.na(control), arr.ind = TRUE)
+
+setdiff(names(case), names(control))
+```
+Number of observations for case and control, respectively
+```{r}
+dim(case)[1]
+dim(control)[1]
+```
+The case/control ratio is approximately `r round(dim(case)[1]/dim(control)[1], 1)`, indicating that the dataset is heavily imbalanced.
+
+35 variables are included into the model building.
+```{r}
+names(case)
+```
+among above variables, `diagnosis` is the response variable and the remaining are dependant variables.
+
+# 2. Logistic Regression
+We are interested in identifying the risk factors for Congenital Heart Disease (CHD). Logistic regression is one of the classical methods for analysis of risk factors. 
+```{r}
+data <- rbind(case, control)
+
+diagnosis <- data$diagnosis
+sex <- factor(data$sex)
+term <- factor(data$term)
+tube.baby <- factor(data$tube.baby)
+production.mode <- factor(data$production.mode)
+M.edu <- factor(data$M.edu)
+M.toxic.exposure <- factor(data$M.toxic.exposure)
+M.radioactive.exposure <- factor(data$M.radioactive.exposure)
+# ordinal variable
+M.smoke.freq <- factor(data$M.smoke.freq, 
+                       levels = c("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ">=10"))
+M.pregnancy.smoke <- factor(data$M.pregnancy.smoke)
+M.pregnancy.2nd.hand.smoke <- factor(data$M.pregnancy.2nd.hand.smoke)
+M.drink <- factor(data$M.drink)
+M.production.age <- data$M.production.age
+M.pregnancy.complication <- factor(data$M.pregnancy.complication)
+M.pregnancy.flu.time <- factor(data$M.pregnancy.flu.time)
+M.pregnancy.med.time <- factor(data$M.pregnancy.med.time)
+M.pregnancy.med.name <- factor(data$M.pregnancy.med.name, 
+                               levels = c("NONE", "Analgesics", "Antibiotics", 
+                                         "Antidepressant","Antitumor drug", 
+                                         "Diet pill",  "Tocolytic agent", 
+                                         "Tranquilizer"))
+M.oral.contraceptive <- factor(data$M.oral.contraceptive)
+F.production.age <- data$F.production.age
+F.edu <- factor(data$F.edu)
+F.toxic.exposure <- factor(data$F.toxic.exposure)
+F.radioactive.exposure <- factor(data$F.radioactive.exposure)
+F.smoke.freq <- factor(data$F.smoke.freq, 
+                       levels = c("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ">=10"))
+F.drink <- factor(data$F.drink)
+decoration <- factor(data$decoration)
+HV.cable <- factor(data$HV.cable)
+chemical.plant <- factor(data$chemical.plant)
+IR.cardiopathy <- factor(data$IR.cardiopathy)
+IR.CHD <- factor(data$IR.CHD)
+IR.congenital.disease <- factor(data$IR.congenital.disease)
+gravidity <- factor(data$gravidity)
+parity <- factor(data$parity)
+abortion <- factor(data$abortion)
+M.smoked.years <- data$F.smoked.years
+F.smoked.years <- data$F.smoked.years
+xfactors <- model.matrix(diagnosis ~ sex + term + tube.baby + production.mode + 
+                           M.edu + M.toxic.exposure + M.radioactive.exposure + 
+                           M.smoke.freq + M.pregnancy.smoke + M.pregnancy.2nd.hand.smoke + 
+                           M.drink + M.pregnancy.complication + M.pregnancy.flu.time + 
+                           M.pregnancy.med.time + M.pregnancy.med.name + 
+                           M.oral.contraceptive + F.edu + F.toxic.exposure + 
+                           F.radioactive.exposure + F.smoke.freq + F.drink + decoration + 
+                           HV.cable + chemical.plant + IR.cardiopathy + IR.CHD + 
+                           IR.congenital.disease + gravidity + parity + abortion)[, -1]
+x <- as.matrix(data.frame(xfactors, M.production.age, F.production.age, 
+                          M.smoked.years, F.smoked.years))
+```
+## Full Logistic Regression Model
+Firstly, we conducted logistic regression with full 84 predictors. The coefficients of `M.pregnancy.med.nameTranquilizer`, `abortion2`, `abortion2`, and `F.smoked.years` are not defined because of singularities, which are omitted from Table 1.
+```{r, results="asis",message=FALSE}
+mydata <- data.frame(diagnosis, x)
+logitmod <- glm(diagnosis ~ ., data = mydata, family = "binomial")
+
+library(texreg)
+texreg(logitmod, single.row = TRUE, use.packages = FALSE, longtable = TRUE, 
+       caption = "Output of logistic regression with full predictors", 
+       caption.above = TRUE, 
+       custom.model.names = "Full Model")
+```
+
+## Logistic Regression with Backward-Stepwise Selection
+A parsimonious model is a model that accomplishes a desired level of explanation or prediction with as few predictor variables as possible. In above full logistic regression model, not all predictors are necessarily included into the logistic regression to build a parsimonious model. Here, we employed the backward-stepwise selection algorithm for variable selection.
+```{r, eval=FALSE}
+logitmod1 <- step(logitmod)
+```
+
+```{r, echo=FALSE}
+load("logitmod1.rda")
+```
+
+```{r, results="asis",message=FALSE}
+texreg(logitmod1, single.row = TRUE, use.packages = FALSE, longtable = TRUE, 
+       caption = "Output of logistic regression with backward-stepwise selection", 
+       caption.above = TRUE, 
+       custom.model.names = "Stepwise Model")
+```
+
+However, the problems with stepwise methods has resulted in the call to [stop using stepwise](http://www.lexjansen.com/pnwsug/2008/DavidCassell-StoppingStepwise.pdf) model builiding together.
+
+One of alternatives to stepwise regression is the partial least squares (PLS) regression.
+
+## Partial Least Squares (PLS) Logistic Regression
+```{r}
+library(plsRglm)
+
+cv.modpls <- cv.plsRglm(dataY = diagnosis, dataX = x, nt = 10, 
+                        modele = "pls-glm-logistic", K = 8, verbose = FALSE)
+res.cv.modpls <- cvtable(summary(cv.modpls, MClassed = TRUE))
+
+modpls2 <- plsRglm(dataY = diagnosis, dataX = x, nt = 10, 
+                   modele = "pls-glm-logistic", sparse = TRUE, 
+                   sparseStop = TRUE)
+```
