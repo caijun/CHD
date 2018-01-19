@@ -71,12 +71,10 @@ mean(dat$F.production.age)
 dat <- dat %>%
   mutate(surgery.date = as.Date(as.character(surgery.date), "%Y%m%d")) %>%
   filter(!is.na(surgery.date))
-x <- subset(dat, is.na(surgery.date))
 range(dat$surgery.date)
-x <- table(dat$surgery.date, useNA = "ifany")
-plot(x, ylab = "No. of surgeries")
 # daily number of surgeries
-full.date <- seq.Date(range(dat$surgery.date)[1], range(dat$surgery.date)[2], by = "day")
+full.date <- seq.Date(range(dat$surgery.date)[1], range(dat$surgery.date)[2], 
+                      by = "day")
 dno <- plyr::ldply(full.date, function(d) {
   df <- subset(dat, surgery.date == d)
   return(data.frame(date = d, no = nrow(df)))
@@ -88,12 +86,13 @@ unique(dat$residence)
 dat <- dat %>%
   mutate(residence = gsub(" ", "", residence))
 unique(dat$residence)
-write.csv(unique(dat$residence), file = "dat/case_residence.csv", row.names = F, quote = F)
+write.csv(unique(dat$residence), file = "output/case_residence.csv", row.names = F, 
+          quote = F)
 # residence <- read.csv("case_residence_fix.csv", fileEncoding = "cp936")
-residence <- read.csv("dat/case_control_residence_fix.csv", fileEncoding = "utf8")
+residence <- read.csv("data/case_control_residence_fix.csv", fileEncoding = "utf8")
 x <- as.data.frame(table(residence$residence))
-setdiff(residence$residence, unique(dat$residence))
 setdiff(unique(dat$residence), residence$residence)
+# extract residence county
 residence$county <- sapply(seq_along(residence$fullname), function(i) {
   gsub(paste0(residence$province[i], residence$prefecture[i]), "", 
        residence$fullname[i])
@@ -105,15 +104,8 @@ residence <- residence %>%
     TRUE ~ .$county
   ))
 dat <- merge(dat, residence, by = "residence", all.x = TRUE)
-# # the following commands caused the R session crash.
-# dat <- dat %>%
-#   left_join(residence, by = "residence")
 unique(subset(dat, is.na(fullname))$residence)
 x <- subset(dat, is.na(fullname))
-# # check 和县，和县病例太多了，需要复查一下
-# x <- dat[grepl("和县", dat$residence), ]
-# write.csv(x, file = "dat/check_case_residence.csv", row.names = F, 
-#           quote = T)
 
 # by province
 x <- dat %>%
@@ -133,15 +125,13 @@ x <- dat %>%
   dplyr::summarise(n = n()) %>%
   dplyr::arrange(desc(n))
 
-
 # 性别
 unique(dat$sex)
 length(unique(dat$sex))
 dat <- dat %>%
   mutate(sex = case_when(
     .$sex == "男" ~ "M",
-    .$sex == "女" ~ "F",
-    .$sex == "" ~ as.character(NA)
+    .$sex == "女" ~ "F"
   ))
 table(dat$sex, useNA = "ifany")
 
@@ -238,6 +228,11 @@ table(dat$M.smoke, useNA = "ifany")
 
 # 母亲几岁开始吸烟:与母亲是否吸烟数据不吻合，母亲是否吸烟数据存在问题，据此更新母亲是否吸烟数据
 unique(dat$M.smoke.start.age)
+dat <- dat %>%
+  mutate(M.smoke.start.age = case_when(
+    .$M.smoke.start.age == "NA" ~ as.numeric(NA),
+    TRUE ~ as.numeric(.$M.smoke.start.age)
+  ))
 table(dat$M.smoke.start.age, useNA = "ifany")
 dat <- dat %>%
   mutate(M.smoke = case_when(
@@ -248,13 +243,20 @@ table(dat$M.smoke, useNA = "ifany")
 # 将母亲几岁开始吸烟转换为烟龄
 dat <- dat %>%
   mutate(M.smoked.years = case_when(
-    is.na(.$M.smoke.start.age) ~ 0L,
+    is.na(.$M.smoke.start.age) ~ 0,
     TRUE ~ .$M.production.age - .$M.smoke.start.age
   ))
 summary(dat$M.smoked.years)
+# exclude case with smoked years < 0
+x <- subset(dat, M.smoked.years < 0)
 
 # 母亲每天吸烟支数
 unique(dat$M.smoke.freq)
+dat <- dat %>%
+  mutate(M.smoke.freq = case_when(
+    .$M.smoke.freq == "NA" ~ as.integer(NA),
+    TRUE ~ as.integer(.$M.smoke.freq)
+  ))
 table(dat$M.smoke.freq, useNA = "ifany")
 dat <- dat %>%
   mutate(M.smoke.freq = case_when(
@@ -266,6 +268,11 @@ table(dat$M.smoke.freq, useNA = "ifany")
 
 # 母亲孕期是否吸烟
 unique(dat$M.pregnancy.smoke)
+dat <- dat %>%
+  mutate(M.pregnancy.smoke = case_when(
+    .$M.pregnancy.smoke == "NA" ~ as.integer(NA),
+    TRUE ~ as.integer(.$M.pregnancy.smoke)
+  ))
 table(dat$M.pregnancy.smoke, useNA = "ifany")
 dat <- dat %>%
   mutate(M.pregnancy.smoke = case_when(
@@ -317,6 +324,11 @@ table(dat$M.pregnancy.flu, useNA = "ifany")
 
 # 母亲孕期感冒时期:月
 unique(dat$M.pregnancy.flu.time)
+dat <- dat %>%
+  mutate(M.pregnancy.flu.time = case_when(
+    .$M.pregnancy.flu.time == "NA" ~ as.integer(NA),
+    TRUE ~ as.integer(.$M.pregnancy.flu.time)
+  ))
 table(dat$M.pregnancy.flu.time, useNA = "ifany")
 dat <- dat %>%
   mutate(M.pregnancy.flu.time = case_when(
@@ -336,6 +348,11 @@ table(dat$M.pregnancy.med, useNA = "ifany")
 
 # 母亲孕期用药时期:月
 unique(dat$M.pregnancy.med.time)
+dat <- dat %>%
+  mutate(M.pregnancy.med.time = case_when(
+    .$M.pregnancy.med.time == "NA" ~ as.integer(NA),
+    TRUE ~ as.integer(.$M.pregnancy.med.time)
+  ))
 table(dat$M.pregnancy.med.time, useNA = "ifany")
 dat <- dat %>%
   mutate(M.pregnancy.med.time = case_when(
@@ -354,7 +371,7 @@ dat <- dat %>%
   # replace non-breaking space with space
   mutate(M.pregnancy.med.name = gsub("\u00A0", " ", M.pregnancy.med.name, fixed = TRUE)) %>%
   mutate(M.pregnancy.med.name = case_when(
-    .$M.pregnancy.med.name == "" ~ "NONE", 
+    is.na(.$M.pregnancy.med.name) ~ "NONE", 
     TRUE ~ .$M.pregnancy.med.name
   ))
 table(dat$M.pregnancy.med.name, useNA = "ifany")
@@ -370,17 +387,12 @@ table(dat$M.pregnancy.folic.acid, useNA = "ifany")
 
 # 母亲孕前1-3月是否口服避孕药
 unique(dat$M.oral.contraceptive)
-x <- subset(dat, M.oral.contraceptive == 11)
 dat <- dat %>%
   mutate(M.oral.contraceptive = case_when(
-    .$M.oral.contraceptive == 11 ~ 1, 
     .$M.oral.contraceptive == 1 ~ 1,
     .$M.oral.contraceptive == 2 ~ 0
   ))
 table(dat$M.oral.contraceptive, useNA = "ifany")
-# x <- subset(dat, is.na(M.oral.contraceptive))
-# write.csv(x, file = "dat/check_case_M.oral.contraceptive.csv", row.names = F, 
-#           quote = F)
 
 # 父亲生子年龄
 unique(dat$F.production.age)
@@ -419,6 +431,11 @@ table(dat$F.smoke, useNA = "ifany")
 
 # 父亲几岁开始吸烟:与父亲是否吸烟数据不吻合，父亲是否吸烟数据存在问题，据此更新父亲是否吸烟数据
 unique(dat$F.smoke.start.age)
+dat <- dat %>%
+  mutate(F.smoke.start.age = case_when(
+    .$F.smoke.start.age == "NA" ~ as.numeric(NA),
+    TRUE ~ as.numeric(.$F.smoke.start.age)
+  ))
 table(dat$F.smoke.start.age, useNA = "ifany")
 dat <- dat %>%
   mutate(F.smoke = case_when(
@@ -429,7 +446,7 @@ table(dat$F.smoke, useNA = "ifany")
 # 将父亲几岁开始吸烟转换为烟龄
 dat <- dat %>%
   mutate(F.smoked.years = case_when(
-    is.na(.$F.smoke.start.age) ~ 0L,
+    is.na(.$F.smoke.start.age) ~ 0,
     TRUE ~ .$F.production.age - .$F.smoke.start.age
   ))
 summary(dat$F.smoked.years)
@@ -438,9 +455,8 @@ summary(dat$F.smoked.years)
 unique(dat$F.smoke.freq)
 dat <- dat %>%
   mutate(F.smoke.freq = case_when(
-    is.na(.$F.smoke.freq) ~ "",
+    is.na(.$F.smoke.freq) ~ "0",
     .$F.smoke.freq == ">10" ~ ">=10",
-    .$F.smoke.freq == "" ~ "0",
     TRUE ~ as.character(.$F.smoke.freq)
   ))
 table(dat$F.smoke.freq, useNA = "ifany")
@@ -467,7 +483,7 @@ table(dat$decoration, useNA = "ifany")
 unique(dat$HV.cable)
 dat <- dat %>%
   mutate(HV.cable = case_when(
-    .$HV.cable %in% c(1, 11) ~ 1,
+    .$HV.cable == 1 ~ 1,
     .$HV.cable == 2 ~ 0
   ))
 table(dat$HV.cable, useNA = "ifany")
@@ -514,4 +530,4 @@ dat <- dat %>%
   mutate(birthYMD = as.Date(ymd(surgery.date) - dyears(age.y))) %>%
   mutate(birthY = year(birthYMD), birthM = month(birthYMD))
 
-saveRDS(dat, "dat/case.rds")
+saveRDS(dat, "output/case.rds")
