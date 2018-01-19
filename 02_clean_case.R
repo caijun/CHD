@@ -248,7 +248,7 @@ dat <- dat %>%
   ))
 summary(dat$M.smoked.years)
 # exclude case with smoked years < 0
-x <- subset(dat, M.smoked.years < 0)
+dat <- subset(dat, M.smoked.years >= 0)
 
 # 母亲每天吸烟支数
 unique(dat$M.smoke.freq)
