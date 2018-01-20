@@ -51,7 +51,15 @@ table(case.m$province, useNA = "ifany")
 case.m <- subset(case.m, province %in% c("江苏省", "安徽省"))
 control.m <- subset(control, id %in% id.lookup1$control.id)
 control.m <- subset(control.m, province %in% c("江苏省", "安徽省"))
-save(case.m, control.m, id.lookup1, file = "output/case_control_matched.rda")
+id.lookup <- subset(id.lookup1, control.id %in% control.m$id)
+id.lookup$pair.id <- 1:nrow(id.lookup)
+case.m <- case.m %>% 
+  left_join(id.lookup, by = c("id" = "case.id")) %>%
+  select(-control.id)
+control.m <- control.m %>% 
+  left_join(id.lookup, by = c("id" = "control.id")) %>%
+  select(-case.id)
+save(case.m, control.m, id.lookup, file = "output/case_control_matched.rda")
 
 # matching criterion of difference in birthday of cases and controls -----------
 df <- data.frame(day.diff <- c(5, 10, 15, 20, 25, 30), 

@@ -1,57 +1,40 @@
 rm(list = ls())
 
-case.m$CHD <- 1
-control.m$CHD <- 0
-CHD <- c(case.m$CHD, control.m$CHD)
-sex <- c(case.m$sex, control.m$sex)
-age.y <- c(case.m$age.y, control.m$age.y)
-tube.baby <- c(case.m$tube.baby, control.m$tube.baby)
-M.production.age <- c(case.m$M.production.age, control.m$M.production.age)
-term <- c(case.m$term, control.m$term)
-production.mode <- c(case.m$production.mode, control.m$production.mode)
-abortion <- c(case.m$abortion, control.m$abortion)
-parity <- c(case.m$parity, control.m$parity)
-gravidity <- c(case.m$gravidity, control.m$gravidity)
-M.edu <- c(case.m$M.edu, control.m$M.edu)
-F.production.age <- c(case.m$F.production.age, control.m$F.production.age)
-F.edu <- c(case.m$F.edu, control.m$F.edu)
-M.toxic.exposure <- c(case.m$M.toxic.exposure, control.m$M.toxic.exposure)
-M.radioactive.exposure <- c(case.m$M.radioactive.exposure, control.m$M.radioactive.exposure)
-M.smoke <- c(case.m$M.smoke, control.m$M.smoke)
-M.smoked.years <- c(case.m$M.smoked.years, control.m$M.smoked.years)
-M.smoke.freq <- c(case.m$M.smoke.freq, control.m$M.smoke.freq)
-M.pregnancy.smoke <- c(case.m$M.pregnancy.smoke, control.m$M.pregnancy.smoke)
-M.pregnancy.passive.smoke <- c(case.m$M.pregnancy.passive.smoke, control.m$M.pregnancy.passive.smoke)
-F.toxic.exposure <- c(case.m$F.toxic.exposure, control.m$F.toxic.exposure)
-F.radioactive.exposure <- c(case.m$F.radioactive.exposure, control.m$F.radioactive.exposure)
-F.smoke <- c(case.m$F.smoke, control.m$F.smoke)
-F.smoked.years <- c(case.m$F.smoked.years, control.m$F.smoked.years)
-F.smoke.freq <- c(case.m$F.smoke.freq, control.m$F.smoke.freq)
-M.drink <- c(case.m$M.drink, control.m$M.drink)
-F.drink <- c(case.m$F.drink, control.m$F.drink)
-decoration <- c(case.m$decoration, control.m$decoration)
-HV.cable <- c(case.m$HV.cable, control.m$HV.cable)
-chemical.plant <- c(case.m$chemical.plant, control.m$chemical.plant)
-M.pregnancy.flu <- c(case.m$M.pregnancy.flu, control.m$M.pregnancy.flu)
-M.pregnancy.flu.time <- c(case.m$M.pregnancy.flu.time, control.m$M.pregnancy.flu.time)
-M.pregnancy.complication <- c(case.m$M.pregnancy.complication, control.m$M.pregnancy.complication)
-M.pregnancy.med <- c(case.m$M.pregnancy.med, control.m$M.pregnancy.med)
-M.pregnancy.med.time <- c(case.m$M.pregnancy.med.time, control.m$M.pregnancy.med.time)
-M.pregnancy.med.name <- c(case.m$M.pregnancy.med.name, control.m$M.pregnancy.med.name)
-M.pregnancy.folic.acid <- c(case.m$M.pregnancy.folic.acid, control.m$M.pregnancy.folic.acid)
-M.oral.contraceptive <- c(case.m$M.oral.contraceptive, control.m$M.oral.contraceptive)
+load("output/case_control_matched.rda")
 
-mydata <- data.frame(CHD, age.y, sex, tube.baby, M.production.age, term, production.mode, 
-                     abortion, parity, gravidity, M.edu, F.production.age, F.edu, 
-                     M.toxic.exposure, M.radioactive.exposure, M.smoke, M.smoked.years, M.smoke.freq, 
-                     M.pregnancy.smoke, 
-                     M.pregnancy.passive.smoke, F.toxic.exposure, F.radioactive.exposure, 
-                     F.smoke, F.smoked.years, F.smoke.freq, 
-                     M.drink, F.drink, decoration, HV.cable, chemical.plant, 
-                     M.pregnancy.flu, M.pregnancy.flu.time, 
-                     M.pregnancy.complication, M.pregnancy.med, 
-                     M.pregnancy.med.time, M.pregnancy.med.name, M.pregnancy.folic.acid, 
-                     M.oral.contraceptive)
+library(tidyverse)
+
+cases <- case.m %>% 
+  mutate(CHD = 1) %>% 
+  select(pair.id, CHD, age.y, sex, tube.baby, M.production.age, term, production.mode, 
+         abortion, parity, gravidity, M.edu, F.production.age, F.edu, 
+         M.toxic.exposure, M.radioactive.exposure, M.smoke, M.smoked.years, M.smoke.freq, 
+         M.pregnancy.smoke, 
+         M.pregnancy.passive.smoke, F.toxic.exposure, F.radioactive.exposure, 
+         F.smoke, F.smoked.years, F.smoke.freq, 
+         M.drink, F.drink, decoration, HV.cable, chemical.plant, 
+         M.pregnancy.flu, M.pregnancy.flu.time, 
+         M.pregnancy.complication, M.pregnancy.med, 
+         M.pregnancy.med.time, M.pregnancy.med.name, M.pregnancy.folic.acid, 
+         M.oral.contraceptive) %>% 
+  arrange(pair.id)
+
+controls <- control.m %>% 
+  mutate(CHD = 0) %>% 
+  select(pair.id, CHD, age.y, sex, tube.baby, M.production.age, term, production.mode, 
+         abortion, parity, gravidity, M.edu, F.production.age, F.edu, 
+         M.toxic.exposure, M.radioactive.exposure, M.smoke, M.smoked.years, M.smoke.freq, 
+         M.pregnancy.smoke, 
+         M.pregnancy.passive.smoke, F.toxic.exposure, F.radioactive.exposure, 
+         F.smoke, F.smoked.years, F.smoke.freq, 
+         M.drink, F.drink, decoration, HV.cable, chemical.plant, 
+         M.pregnancy.flu, M.pregnancy.flu.time, 
+         M.pregnancy.complication, M.pregnancy.med, 
+         M.pregnancy.med.time, M.pregnancy.med.name, M.pregnancy.folic.acid, 
+         M.oral.contraceptive) %>% 
+  arrange(pair.id)
+
+mydata <- rbind(cases, controls)
 
 ### Table 1 ###
 library(plyr)
@@ -62,19 +45,17 @@ ddply(mydata, ~ CHD, summarise, mean = round(mean(age.y), 2), sd = round(sd(age.
 x <- xtabs(~ CHD + sex, data = mydata)
 round(x / rowSums(x) * 100, 2)
 
-mylogit <- glm(CHD ~ sex, data = mydata, family = "binomial")
+# use conditional logitstic regression if matching has been done
+library(survival)
+mylogit <- clogit(CHD ~ sex + strata(pair.id), data = mydata)
 summary(mylogit)
-## odds ratios and 95% CI
-exp(cbind(OR = coef(mylogit), confint(mylogit)))
 
 # case和control试管婴儿
 x <- xtabs(~ CHD + tube.baby, data = mydata)
 round(x / rowSums(x) * 100, 2)
 
-mylogit <- glm(CHD ~ tube.baby, data = mydata, family = "binomial")
+mylogit <- clogit(CHD ~ tube.baby + strata(pair.id), data = mydata)
 summary(mylogit)
-## odds ratios and 95% CI
-exp(cbind(OR = coef(mylogit), confint(mylogit)))
 
 # case和control母亲生子年龄
 ddply(mydata, ~ CHD, summarise, mean = round(mean(M.production.age), 2), 
@@ -90,30 +71,24 @@ mydata$M.production.age <- factor(mydata$M.production.age, levels = c("20~30", "
 x <- xtabs(~ CHD + M.production.age, data = mydata)
 round(x / rowSums(x) * 100, 2)
 
-mylogit <- glm(CHD ~ M.production.age, data = mydata, family = "binomial")
+mylogit <- clogit(CHD ~ M.production.age + strata(pair.id), data = mydata)
 summary(mylogit)
-## odds ratios and 95% CI
-exp(cbind(OR = coef(mylogit), confint(mylogit)))
 
 # case和control是否足月产
 x <- xtabs(~ CHD + term, data = mydata)
 round(x / rowSums(x) * 100, 2)
 
 mydata$term <- factor(mydata$term, levels = c("1", "0"))
-mylogit <- glm(CHD ~ term, data = mydata, family = "binomial")
+mylogit <- clogit(CHD ~ term + strata(pair.id), data = mydata)
 summary(mylogit)
-## odds ratios and 95% CI
-exp(cbind(OR = coef(mylogit), confint(mylogit)))
 
 # case和control是否顺产
 x <- xtabs(~ CHD + production.mode, data = mydata)
 round(x / rowSums(x) * 100, 2)
 
 mydata$production.mode <- factor(mydata$production.mode, levels = c("1", "0"))
-mylogit <- glm(CHD ~ production.mode, data = mydata, family = "binomial")
+mylogit <- clogit(CHD ~ production.mode + strata(pair.id), data = mydata)
 summary(mylogit)
-## odds ratios and 95% CI
-exp(cbind(OR = coef(mylogit), confint(mylogit)))
 
 # case和control是否流产
 mydata <- mydata %>%
@@ -125,20 +100,16 @@ mydata$abortion <- factor(mydata$abortion, levels = c("0", "1"))
 x <- xtabs(~ CHD + abortion, data = mydata)
 round(x / rowSums(x) * 100, 2)
 
-mylogit <- glm(CHD ~ abortion, data = mydata, family = "binomial")
+mylogit <- clogit(CHD ~ abortion + strata(pair.id), data = mydata)
 summary(mylogit)
-## odds ratios and 95% CI
-exp(cbind(OR = coef(mylogit), confint(mylogit)))
 
 # case和control生产次数
 x <- xtabs(~ CHD + parity, data = mydata)
 round(x / rowSums(x) * 100, 2)
 
 mydata$parity <- factor(mydata$parity)
-mylogit <- glm(CHD ~ parity, data = mydata, family = "binomial")
+mylogit <- clogit(CHD ~ parity + strata(pair.id), data = mydata)
 summary(mylogit)
-## odds ratios and 95% CI
-exp(cbind(OR = coef(mylogit), confint(mylogit)))
 
 # case和control怀孕次数
 mydata <- mydata %>%
@@ -150,32 +121,20 @@ mydata$gravidity <- factor(mydata$gravidity, levels = c("1", "2", ">=3"))
 x <- xtabs(~ CHD + gravidity, data = mydata)
 round(x / rowSums(x) * 100, 2)
 
-mylogit <- glm(CHD ~ gravidity, data = mydata, family = "binomial")
+mylogit <- clogit(CHD ~ gravidity + strata(pair.id), data = mydata)
 summary(mylogit)
-## odds ratios and 95% CI
-exp(cbind(OR = coef(mylogit), confint(mylogit)))
 
 # case和control母亲教育水平
 x <- xtabs(~ CHD + M.edu, data = mydata)
 round(x / rowSums(x) * 100, 2)
 
 mydata$M.edu <- factor(mydata$M.edu, levels = c("4", "3", "2", "1"))
-mylogit <- glm(CHD ~ M.edu, data = mydata, family = "binomial")
+mylogit <- clogit(CHD ~ M.edu + strata(pair.id), data = mydata)
 summary(mylogit)
-## odds ratios and 95% CI
-exp(cbind(OR = coef(mylogit), confint(mylogit)))
 
 # case和control父亲生子年龄
 ddply(mydata, ~ CHD, summarise, mean = round(mean(F.production.age), 2), 
       sd = round(sd(F.production.age), 2))
-# mydata <- mydata %>%
-#   mutate(F.production.age = case_when(
-#     .$F.production.age < 20 ~ "<20",
-#     .$F.production.age > 30 ~ ">30",
-#     TRUE ~ "20~30"
-#   ))
-# mydata$F.production.age <- factor(mydata$F.production.age, levels = c("20~30", "<20", ">30"))
-
 # 中国男性法定结婚年龄不早于22周岁
 mydata <- mydata %>%
   mutate(F.production.age = case_when(
@@ -188,78 +147,42 @@ mydata$F.production.age <- factor(mydata$F.production.age, levels = c("22~30", "
 x <- xtabs(~ CHD + F.production.age, data = mydata)
 round(x / rowSums(x) * 100, 2)
 
-mylogit <- glm(CHD ~ F.production.age, data = mydata, family = "binomial")
+mylogit <- clogit(CHD ~ F.production.age + strata(pair.id), data = mydata)
 summary(mylogit)
-## odds ratios and 95% CI
-exp(cbind(OR = coef(mylogit), confint(mylogit)))
-
-
-# x <- data.frame(M.production.age = case.m$M.production.age, 
-#                 F.production.age = case.m$F.production.age)
-# y <- subset(x, M.production.age == 34)
-# hist(y$F.production.age)
-# table(y$F.production.age)
-# 
-# z <- subset(x, F.production.age == 34)
-# hist(z$M.production.age)
-# table(z$M.production.age)
-# 
-# par(mfrow = c(2, 2))
-# case.M.F.age.diff <- case.m$M.production.age - case.m$F.production.age
-# plot(case.m$M.production.age, case.M.F.age.diff, xlab = "Maternal Production Age", 
-#      ylab = "Age Difference between Mother and Father", main = "Case")
-# abline(h = 0, col = "red")
-# 
-# plot(case.m$F.production.age, case.M.F.age.diff, xlab = "Paternal Production Age", 
-#      ylab = "Age Difference between Mother and Father", main = "Case")
-# abline(h = 0, col = "red")
-# 
-# control.M.F.age.diff <- control.m$M.production.age - control.m$F.production.age
-# plot(control.m$M.production.age, control.M.F.age.diff, xlab = "Maternal Production Age", 
-#      ylab = "Age Difference between Mother and Father", main = "Control")
-# abline(h = 0, col = "red")
-# 
-# plot(control.m$F.production.age, control.M.F.age.diff, xlab = "Paternal Production Age", 
-#      ylab = "Age Difference between Mother and Father", main = "Control")
-# abline(h = 0, col = "red")
-
 
 # case和control父亲教育水平
 x <- xtabs(~ CHD + F.edu, data = mydata)
 round(x / rowSums(x) * 100, 2)
 
 mydata$F.edu <- factor(mydata$F.edu, levels = c("4", "3", "2", "1"))
+mylogit <- clogit(CHD ~ F.edu + strata(pair.id), data = mydata)
+summary(mylogit)
+
 mylogit <- glm(CHD ~ F.edu, data = mydata, family = "binomial")
 summary(mylogit)
-# p values
-p <- coef(summary(mylogit))[, 4]
-p.adjust(0.03, method = "bonferroni", n = 3)
-p.adjust(0.03, method = "BH", n = 3)
-## odds ratios and 95% CI
-exp(cbind(OR = coef(mylogit), confint(mylogit)))
 
 # correlation between maternal and paternal production ages
-# since both maternal and paternal production ages are nominal variables, we use Cramer's V to measure theris association.
+# since both maternal and paternal production ages are nominal variables, we use Cramer's V to measure their association.
 library(vcd)
-hist(case.m$M.production.age)
-hist(case.m$F.production.age)
-summary(case.m$M.production.age)
-summary(case.m$F.production.age)
-hist(case.m$F.production.age - case.m$M.production.age)
-summary(case.m$F.production.age - case.m$M.production.age)
+hist(cases$M.production.age)
+hist(cases$F.production.age)
+summary(cases$M.production.age)
+summary(cases$F.production.age)
+hist(cases$F.production.age - cases$M.production.age)
+summary(cases$F.production.age - cases$M.production.age)
 
-cor.test(case.m$M.production.age, case.m$F.production.age)
-cor.test(control.m$M.production.age, control.m$F.production.age)
-plot(case.m$M.production.age, case.m$F.production.age)
+cor.test(cases$M.production.age, cases$F.production.age)
+cor.test(controls$M.production.age, controls$F.production.age)
+plot(cases$M.production.age, cases$F.production.age)
 
 mydata1 <- data.frame(M.production.age = mydata$M.production.age, 
                       F.production.age = mydata$F.production.age)
 x <- xtabs(~ M.production.age + F.production.age, data = mydata1)
 assocstats(x)
 
-cor.test(case.m$M.edu, case.m$F.edu)
-cor.test(control.m$M.edu, control.m$F.edu)
-plot(case.m$M.edu, case.m$F.edu)
+cor.test(cases$M.edu, cases$F.edu)
+cor.test(controls$M.edu, controls$F.edu)
+plot(cases$M.edu, cases$F.edu)
 
 mydata1 <- data.frame(M.edu = mydata$M.edu, 
                       F.edu = mydata$F.edu)
@@ -364,15 +287,6 @@ mydata <- mydata %>%
   ))
 mydata$M.smoke.freq <- factor(mydata$M.smoke.freq, 
                               levels = c("NONE", "<=5", ">5"))
-# mydata <- mydata %>%
-#   mutate(M.smoke.freq = case_when(
-#     .$M.smoke.freq == "0" ~ "NONE",
-#     .$M.smoke.freq %in% c("1", "2", "3", "4") ~ "<5",
-#     .$M.smoke.freq %in% c("5", "6", "7", "8", "9") ~ "[5, 10)", 
-#     .$M.smoke.freq %in% c(">=10") ~ ">=10"
-#   ))
-# mydata$M.smoke.freq <- factor(mydata$M.smoke.freq, 
-#                                 levels = c("NONE", "<5", "[5, 10)", ">=10"))
 
 x <- xtabs(~ CHD + M.smoke.freq, data = mydata)
 round(x / rowSums(x) * 100, 2)
@@ -480,15 +394,6 @@ mydata <- mydata %>%
   ))
 mydata$F.smoked.years <- factor(mydata$F.smoked.years, 
                                 levels = c("NONE", "<=10", ">10"))
-# mydata <- mydata %>%
-#   mutate(F.smoked.years = case_when(
-#     .$F.smoked.years == 0 ~ "NONE",
-#     .$F.smoked.years < 5 ~ "<5",
-#     .$F.smoked.years >= 5 & .$F.smoked.years < 10 ~ "[5, 10)", 
-#     .$F.smoked.years >= 10 ~ ">=10"
-#   ))
-# mydata$F.smoked.years <- factor(mydata$F.smoked.years, 
-#                                 levels = c("NONE", "<5", "[5, 10)", ">=10"))
 
 x <- xtabs(~ CHD + F.smoked.years, data = mydata)
 round(x / rowSums(x) * 100, 2)
@@ -514,15 +419,6 @@ mydata <- mydata %>%
   ))
 mydata$F.smoke.freq <- factor(mydata$F.smoke.freq, 
                               levels = c("NONE", "<=5", ">5"))
-# mydata <- mydata %>%
-#   mutate(F.smoke.freq = case_when(
-#     .$F.smoke.freq == "0" ~ "NONE",
-#     .$F.smoke.freq %in% c("1", "2", "3", "4") ~ "<5",
-#     .$F.smoke.freq %in% c("5", "6", "7", "8", "9") ~ "[5, 10)", 
-#     .$F.smoke.freq %in% c(">=10") ~ ">=10"
-#   ))
-# mydata$F.smoke.freq <- factor(mydata$F.smoke.freq, 
-#                               levels = c("NONE", "<5", "[5, 10)", ">=10"))
 
 x <- xtabs(~ CHD + F.smoke.freq, data = mydata)
 round(x / rowSums(x) * 100, 2)
