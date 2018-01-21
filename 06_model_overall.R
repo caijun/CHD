@@ -158,9 +158,6 @@ mydata$F.edu <- factor(mydata$F.edu, levels = c("4", "3", "2", "1"))
 mylogit <- clogit(CHD ~ F.edu + strata(pair.id), data = mydata)
 summary(mylogit)
 
-mylogit <- glm(CHD ~ F.edu, data = mydata, family = "binomial")
-summary(mylogit)
-
 # correlation between maternal and paternal production ages
 # since both maternal and paternal production ages are nominal variables, we use Cramer's V to measure their association.
 library(vcd)
@@ -197,55 +194,36 @@ x <- xtabs(~ CHD + M.toxic.exposure, data = mydata)
 round(x / rowSums(x) * 100, 2)
 
 mydata$M.toxic.exposure <- factor(mydata$M.toxic.exposure)
-mylogit <- glm(CHD ~ M.toxic.exposure, data = mydata, family = "binomial")
+mylogit <- clogit(CHD ~ M.toxic.exposure + M.production.age + parity + 
+                    gravidity + M.edu + strata(pair.id), data = mydata)
 summary(mylogit)
-## odds ratios and 95% CI
-exp(cbind(OR = coef(mylogit), confint(mylogit)))
-# adjusted odds ratios and 95% CI
-mylogit1 <- glm(CHD ~ M.toxic.exposure + M.production.age + parity + gravidity + M.edu, 
-                data = mydata, family = "binomial")
-summary(mylogit1)
-exp(cbind(OR = coef(mylogit1), confint(mylogit1)))
 # examine the collinearity of variables
 library(car)
-vif(mylogit1)
+vif(mylogit)
 
 # case和control母亲是否接触放射性物质
 x <- xtabs(~ CHD + M.radioactive.exposure, data = mydata)
 round(x / rowSums(x) * 100, 2)
 
 mydata$M.radioactive.exposure <- factor(mydata$M.radioactive.exposure)
-mylogit <- glm(CHD ~ M.radioactive.exposure, data = mydata, family = "binomial")
+mylogit <- clogit(CHD ~ M.radioactive.exposure + M.production.age + parity + 
+                    gravidity + M.edu + strata(pair.id), data = mydata)
 summary(mylogit)
-## odds ratios and 95% CI
-exp(cbind(OR = coef(mylogit), confint(mylogit)))
-# adjusted odds ratios and 95% CI
-mylogit1 <- glm(CHD ~ M.radioactive.exposure + M.production.age + parity + gravidity + M.edu, 
-                data = mydata, family = "binomial")
-summary(mylogit1)
-exp(cbind(OR = coef(mylogit1), confint(mylogit1)))
-vif(mylogit1)
+vif(mylogit)
 
 # case和control母亲是否吸烟
 x <- xtabs(~ CHD + M.smoke, data = mydata)
 round(x / rowSums(x) * 100, 2)
 
 mydata$M.smoke <- factor(mydata$M.smoke)
-mylogit <- glm(CHD ~ M.smoke, data = mydata, family = "binomial")
+mylogit <- clogit(CHD ~ M.smoke + M.production.age + parity + 
+                    gravidity + M.edu + strata(pair.id), data = mydata)
 summary(mylogit)
-## odds ratios and 95% CI
-exp(cbind(OR = coef(mylogit), confint(mylogit)))
-# adjusted odds ratios and 95% CI
-mylogit1 <- glm(CHD ~ M.smoke + M.production.age + parity + gravidity + M.edu, 
-                data = mydata, family = "binomial")
-summary(mylogit1)
-exp(cbind(OR = coef(mylogit1), confint(mylogit1)))
-vif(mylogit1)
-
+vif(mylogit)
 
 # case和control母亲烟龄
-ddply(mydata[mydata$M.smoked.years > 0, ], ~ CHD, summarise, mean = round(mean(M.smoked.years), 2), 
-      sd = round(sd(M.smoked.years), 2))
+ddply(mydata[mydata$M.smoked.years > 0, ], ~ CHD, summarise, 
+      mean = round(mean(M.smoked.years), 2), sd = round(sd(M.smoked.years), 2))
 mydata <- mydata %>%
   mutate(M.smoked.years = case_when(
     .$M.smoked.years == 0 ~ "NONE",
@@ -254,29 +232,14 @@ mydata <- mydata %>%
   ))
 mydata$M.smoked.years <- factor(mydata$M.smoked.years, 
                                 levels = c("NONE", "<=10", ">10"))
-# mydata <- mydata %>%
-#   mutate(M.smoked.years = case_when(
-#     .$M.smoked.years == 0 ~ "NONE",
-#     .$M.smoked.years < 5 ~ "<5",
-#     .$M.smoked.years >= 5 & .$M.smoked.years < 10 ~ "[5, 10)", 
-#     .$M.smoked.years >= 10 ~ ">=10"
-#   ))
-# mydata$M.smoked.years <- factor(mydata$M.smoked.years, 
-#                                 levels = c("NONE", "<5", "[5, 10)", ">=10"))
 
 x <- xtabs(~ CHD + M.smoked.years, data = mydata)
 round(x / rowSums(x) * 100, 2)
 
-mylogit <- glm(CHD ~ M.smoked.years, data = mydata, family = "binomial")
+mylogit <- clogit(CHD ~ M.smoked.years + M.production.age + parity + 
+                    gravidity + M.edu + strata(pair.id), data = mydata)
 summary(mylogit)
-## odds ratios and 95% CI
-exp(cbind(OR = coef(mylogit), confint(mylogit)))
-# adjusted odds ratios and 95% CI
-mylogit1 <- glm(CHD ~ M.smoked.years + M.production.age + parity + gravidity + M.edu, 
-                data = mydata, family = "binomial")
-summary(mylogit1)
-exp(cbind(OR = coef(mylogit1), confint(mylogit1)))
-vif(mylogit1)
+vif(mylogit)
 
 # case和control母亲每天吸烟支数
 mydata <- mydata %>%
@@ -291,101 +254,64 @@ mydata$M.smoke.freq <- factor(mydata$M.smoke.freq,
 x <- xtabs(~ CHD + M.smoke.freq, data = mydata)
 round(x / rowSums(x) * 100, 2)
 
-mylogit <- glm(CHD ~ M.smoke.freq, data = mydata, family = "binomial")
+mylogit <- clogit(CHD ~ M.smoke.freq + M.production.age + parity + 
+                    gravidity + M.edu + strata(pair.id), data = mydata)
 summary(mylogit)
-## odds ratios and 95% CI
-exp(cbind(OR = coef(mylogit), confint(mylogit)))
-# adjusted odds ratios and 95% CI
-mylogit1 <- glm(CHD ~ M.smoke.freq + M.production.age + parity + gravidity + M.edu, 
-                data = mydata, family = "binomial")
-summary(mylogit1)
-exp(cbind(OR = coef(mylogit1), confint(mylogit1)))
-vif(mylogit1)
+vif(mylogit)
 
 # case和control母亲孕期是否吸烟
-table(mydata$M.pregnancy.smoke, useNA = "ifany")
 x <- xtabs(~ CHD + M.pregnancy.smoke, data = mydata)
 round(x / rowSums(x) * 100, 2)
 
 mydata$M.pregnancy.smoke <- factor(mydata$M.pregnancy.smoke)
-mylogit <- glm(CHD ~ M.pregnancy.smoke, data = mydata, family = "binomial")
+mylogit <- clogit(CHD ~ M.pregnancy.smoke + M.production.age + parity + 
+                    gravidity + M.edu + strata(pair.id), data = mydata)
 summary(mylogit)
-## odds ratios and 95% CI
-exp(cbind(OR = coef(mylogit), confint(mylogit)))
-# adjusted odds ratios and 95% CI
-mylogit1 <- glm(CHD ~ M.pregnancy.smoke + M.production.age + parity + gravidity + M.edu, 
-                data = mydata, family = "binomial")
-summary(mylogit1)
-exp(cbind(OR = coef(mylogit1), confint(mylogit1)))
-vif(mylogit1)
+vif(mylogit)
 
 # case和control母亲孕期是否在二手烟环境
 x <- xtabs(~ CHD + M.pregnancy.passive.smoke, data = mydata)
 round(x / rowSums(x) * 100, 2)
 
 mydata$M.pregnancy.passive.smoke <- factor(mydata$M.pregnancy.passive.smoke)
-mylogit <- glm(CHD ~ M.pregnancy.passive.smoke, data = mydata, family = "binomial")
+mylogit <- clogit(CHD ~ M.pregnancy.passive.smoke + M.production.age + parity + 
+                    gravidity + M.edu + strata(pair.id), data = mydata)
 summary(mylogit)
-## odds ratios and 95% CI
-exp(cbind(OR = coef(mylogit), confint(mylogit)))
-# adjusted odds ratios and 95% CI
-mylogit1 <- glm(CHD ~ M.pregnancy.passive.smoke + M.production.age + parity + gravidity + M.edu, 
-                data = mydata, family = "binomial")
-summary(mylogit1)
-exp(cbind(OR = coef(mylogit1), confint(mylogit1)))
-vif(mylogit1)
+vif(mylogit)
 
 # case和control父亲是否接触有毒物质
 x <- xtabs(~ CHD + F.toxic.exposure, data = mydata)
 round(x / rowSums(x) * 100, 2)
 
 mydata$F.toxic.exposure <- factor(mydata$F.toxic.exposure)
-mylogit <- glm(CHD ~ F.toxic.exposure, data = mydata, family = "binomial")
+mylogit <- clogit(CHD ~ F.toxic.exposure + M.production.age + parity + 
+                    gravidity + M.edu + strata(pair.id), data = mydata)
 summary(mylogit)
-## odds ratios and 95% CI
-exp(cbind(OR = coef(mylogit), confint(mylogit)))
-# adjusted odds ratios and 95% CI
-mylogit1 <- glm(CHD ~ F.toxic.exposure + M.production.age + parity + gravidity + M.edu, 
-                data = mydata, family = "binomial")
-summary(mylogit1)
-exp(cbind(OR = coef(mylogit1), confint(mylogit1)))
-vif(mylogit1)
+vif(mylogit)
 
 # case和control父亲是否接触放射性物质
 x <- xtabs(~ CHD + F.radioactive.exposure, data = mydata)
 round(x / rowSums(x) * 100, 2)
 
 mydata$F.radioactive.exposure <- factor(mydata$F.radioactive.exposure)
-mylogit <- glm(CHD ~ F.radioactive.exposure, data = mydata, family = "binomial")
+mylogit <- clogit(CHD ~ F.radioactive.exposure + M.production.age + parity + 
+                    gravidity + M.edu + strata(pair.id), data = mydata)
 summary(mylogit)
-## odds ratios and 95% CI
-exp(cbind(OR = coef(mylogit), confint(mylogit)))
-# adjusted odds ratios and 95% CI
-mylogit1 <- glm(CHD ~ F.radioactive.exposure + M.production.age + parity + gravidity + M.edu, 
-                data = mydata, family = "binomial")
-summary(mylogit1)
-exp(cbind(OR = coef(mylogit1), confint(mylogit1)))
-vif(mylogit1)
+vif(mylogit)
 
 # case和control父亲是否吸烟
 x <- xtabs(~ CHD + F.smoke, data = mydata)
 round(x / rowSums(x) * 100, 2)
 
 mydata$F.smoke <- factor(mydata$F.smoke)
-mylogit <- glm(CHD ~ F.smoke, data = mydata, family = "binomial")
+mylogit <- clogit(CHD ~ F.smoke + M.production.age + parity + 
+                    gravidity + M.edu + strata(pair.id), data = mydata)
 summary(mylogit)
-## odds ratios and 95% CI
-exp(cbind(OR = coef(mylogit), confint(mylogit)))
-# adjusted odds ratios and 95% CI
-mylogit1 <- glm(CHD ~ F.smoke + M.production.age + parity + gravidity + M.edu, 
-                data = mydata, family = "binomial")
-summary(mylogit1)
-exp(cbind(OR = coef(mylogit1), confint(mylogit1)))
-vif(mylogit1)
+vif(mylogit)
 
 # case和control父亲烟龄
-ddply(mydata[mydata$F.smoked.years != 0, ], ~ CHD, summarise, mean = round(mean(F.smoked.years), 2), 
-      sd = round(sd(F.smoked.years), 2))
+ddply(mydata[mydata$F.smoked.years != 0, ], ~ CHD, summarise, 
+      mean = round(mean(F.smoked.years), 2), sd = round(sd(F.smoked.years), 2))
 mydata <- mydata %>%
   mutate(F.smoked.years = case_when(
     .$F.smoked.years == 0 ~ "NONE",
@@ -398,16 +324,10 @@ mydata$F.smoked.years <- factor(mydata$F.smoked.years,
 x <- xtabs(~ CHD + F.smoked.years, data = mydata)
 round(x / rowSums(x) * 100, 2)
 
-mylogit <- glm(CHD ~ F.smoked.years, data = mydata, family = "binomial")
+mylogit <- clogit(CHD ~ F.smoked.years + M.production.age + parity + 
+                    gravidity + M.edu + strata(pair.id), data = mydata)
 summary(mylogit)
-## odds ratios and 95% CI
-exp(cbind(OR = coef(mylogit), confint(mylogit)))
-# adjusted odds ratios and 95% CI
-mylogit1 <- glm(CHD ~ F.smoked.years + M.production.age + parity + gravidity + M.edu, 
-                data = mydata, family = "binomial")
-summary(mylogit1)
-exp(cbind(OR = coef(mylogit1), confint(mylogit1)))
-vif(mylogit1)
+vif(mylogit)
 
 # case和control父亲每天吸烟支数
 table(mydata$F.smoke.freq, useNA = "ifany")
@@ -423,97 +343,60 @@ mydata$F.smoke.freq <- factor(mydata$F.smoke.freq,
 x <- xtabs(~ CHD + F.smoke.freq, data = mydata)
 round(x / rowSums(x) * 100, 2)
 
-mylogit <- glm(CHD ~ F.smoke.freq, data = mydata, family = "binomial")
+mylogit <- clogit(CHD ~ F.smoke.freq + M.production.age + parity + 
+                    gravidity + M.edu + strata(pair.id), data = mydata)
 summary(mylogit)
-## odds ratios and 95% CI
-exp(cbind(OR = coef(mylogit), confint(mylogit)))
-# adjusted odds ratios and 95% CI
-mylogit1 <- glm(CHD ~ F.smoke.freq + M.production.age + parity + gravidity + M.edu, 
-                data = mydata, family = "binomial")
-summary(mylogit1)
-exp(cbind(OR = coef(mylogit1), confint(mylogit1)))
-vif(mylogit1)
+vif(mylogit)
 
 # case和control母亲是否喝酒
 x <- xtabs(~ CHD + M.drink, data = mydata)
 round(x / rowSums(x) * 100, 2)
 
 mydata$M.drink <- factor(mydata$M.drink)
-mylogit <- glm(CHD ~ M.drink, data = mydata, family = "binomial")
+mylogit <- clogit(CHD ~ M.drink + M.production.age + parity + 
+                    gravidity + M.edu + strata(pair.id), data = mydata)
 summary(mylogit)
-## odds ratios and 95% CI
-exp(cbind(OR = coef(mylogit), confint(mylogit)))
-# adjusted odds ratios and 95% CI
-mylogit1 <- glm(CHD ~ M.drink + M.production.age + parity + gravidity + M.edu, 
-                data = mydata, family = "binomial")
-summary(mylogit1)
-exp(cbind(OR = coef(mylogit1), confint(mylogit1)))
-vif(mylogit1)
-
+vif(mylogit)
 
 # case和control父亲是否喝酒
 x <- xtabs(~ CHD + F.drink, data = mydata)
 round(x / rowSums(x) * 100, 2)
 
 mydata$F.drink <- factor(mydata$F.drink)
-mylogit <- glm(CHD ~ F.drink, data = mydata, family = "binomial")
+mylogit <- clogit(CHD ~ F.drink + M.production.age + parity + 
+                    gravidity + M.edu + strata(pair.id), data = mydata)
 summary(mylogit)
-## odds ratios and 95% CI
-exp(cbind(OR = coef(mylogit), confint(mylogit)))
-# adjusted odds ratios and 95% CI
-mylogit1 <- glm(CHD ~ F.drink + M.production.age + parity + gravidity + M.edu, 
-                data = mydata, family = "binomial")
-summary(mylogit1)
-exp(cbind(OR = coef(mylogit1), confint(mylogit1)))
-vif(mylogit1)
+vif(mylogit)
 
 # case和control房屋是否装修
 x <- xtabs(~ CHD + decoration, data = mydata)
 round(x / rowSums(x) * 100, 2)
 
 mydata$decoration <- factor(mydata$decoration)
-mylogit <- glm(CHD ~ decoration, data = mydata, family = "binomial")
+mylogit <- clogit(CHD ~ decoration + M.production.age + parity + 
+                    gravidity + M.edu + strata(pair.id), data = mydata)
 summary(mylogit)
-## odds ratios and 95% CI
-exp(cbind(OR = coef(mylogit), confint(mylogit)))
-# adjusted odds ratios and 95% CI
-mylogit1 <- glm(CHD ~ decoration + M.production.age + parity + gravidity + M.edu, 
-                data = mydata, family = "binomial")
-summary(mylogit1)
-exp(cbind(OR = coef(mylogit1), confint(mylogit1)))
-vif(mylogit1)
+vif(mylogit)
 
 # case和control房屋附近是否有高压电缆
 x <- xtabs(~ CHD + HV.cable, data = mydata)
 round(x / rowSums(x) * 100, 2)
 
 mydata$HV.cable <- factor(mydata$HV.cable)
-mylogit <- glm(CHD ~ HV.cable, data = mydata, family = "binomial")
+mylogit <- clogit(CHD ~ HV.cable + M.production.age + parity + 
+                    gravidity + M.edu + strata(pair.id), data = mydata)
 summary(mylogit)
-## odds ratios and 95% CI
-exp(cbind(OR = coef(mylogit), confint(mylogit)))
-# adjusted odds ratios and 95% CI
-mylogit1 <- glm(CHD ~ HV.cable + M.production.age + parity + gravidity + M.edu, 
-                data = mydata, family = "binomial")
-summary(mylogit1)
-exp(cbind(OR = coef(mylogit1), confint(mylogit1)))
-vif(mylogit1)
+vif(mylogit)
 
 # case和control房屋附近是否有化工厂
 x <- xtabs(~ CHD + chemical.plant, data = mydata)
 round(x / rowSums(x) * 100, 2)
 
 mydata$chemical.plant <- factor(mydata$chemical.plant)
-mylogit <- glm(CHD ~ chemical.plant, data = mydata, family = "binomial")
+mylogit <- clogit(CHD ~ chemical.plant + M.production.age + parity + 
+                    gravidity + M.edu + strata(pair.id), data = mydata)
 summary(mylogit)
-## odds ratios and 95% CI
-exp(cbind(OR = coef(mylogit), confint(mylogit)))
-# adjusted odds ratios and 95% CI
-mylogit1 <- glm(CHD ~ chemical.plant + M.production.age + parity + gravidity + M.edu, 
-                data = mydata, family = "binomial")
-summary(mylogit1)
-exp(cbind(OR = coef(mylogit1), confint(mylogit1)))
-vif(mylogit1)
+vif(mylogit)
 ### Table 2 ###
 
 
