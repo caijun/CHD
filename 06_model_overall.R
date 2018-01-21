@@ -39,7 +39,8 @@ mydata <- rbind(cases, controls)
 ### Table 1 ###
 library(plyr)
 # case和control年龄范围
-ddply(mydata, ~ CHD, summarise, mean = round(mean(age.y), 2), sd = round(sd(age.y), 2))
+ddply(mydata, ~ CHD, summarise, mean = round(mean(age.y), 2), 
+      sd = round(sd(age.y), 2))
 
 # case和control性别
 x <- xtabs(~ CHD + sex, data = mydata)
