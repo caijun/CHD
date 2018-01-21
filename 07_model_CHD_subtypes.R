@@ -4,10 +4,10 @@ load("output/case_control_matched.rda")
 
 library(tidyverse)
 
-# subtypes: VSD, ASD, PDA, PS, TOF, VSD_ASD
-subtype <- "VSD_ASD"
+# subtypes: VSD, ASD, PDA, PS, TOF, TGA, CAVC, COA, TAPVC, VSD_ASD, multiple_defects
+subtype <- "TAPVC"
 
-if (subtype %in% c("VSD", "ASD", "PDA", "PS", "TOF")) {
+if (subtype %in% c("VSD", "ASD", "PDA", "PS", "TOF", "TGA", "CAVC", "COA", "TAPVC")) {
   case.m <- case.m %>% 
     mutate(CHD = ifelse(grepl(subtype, ignore.case = TRUE, diagnosis), 1, 0))
 } else if (subtype == "VSD_ASD") {
@@ -15,6 +15,11 @@ if (subtype %in% c("VSD", "ASD", "PDA", "PS", "TOF")) {
     mutate(VSD = ifelse(grepl("VSD", ignore.case = TRUE, diagnosis), 1, 0), 
            ASD = ifelse(grepl("ASD", ignore.case = TRUE, diagnosis), 1, 0)) %>% 
     mutate(CHD = as.integer(VSD & ASD))
+} else if (subtype == "multiple_defects") {
+  # multiple defects:合并心外畸形，比如先天性喉软骨发育不良，鸡胸，先天性脑发育不良等
+  case.m <- case.m %>% 
+    mutate(CHD = ifelse(grepl("睾|裂|疝|发育|胸|脑|癫痫|肾|食道|肛门|闭锁|眼|畸|瘘", 
+                              ignore.case = TRUE, diagnosis), 1, 0))
 }
 
 cases <- case.m %>% 
