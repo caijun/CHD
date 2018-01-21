@@ -4,10 +4,10 @@ load("output/case_control_matched.rda")
 
 library(tidyverse)
 
-# subtypes: VSD, ASD, PDA, PS
-subtype <- "Ps"
+# subtypes: VSD, ASD, PDA, PS, TOF
+subtype <- "TOF"
 
-if (subtype %in% c("VSD", "ASD", "PDA", "PS")) {
+if (subtype %in% c("VSD", "ASD", "PDA", "PS", "TOF")) {
   case.m <- case.m %>% 
     mutate(CHD = ifelse(grepl(subtype, ignore.case = TRUE, diagnosis), 1, 0))
 }
@@ -131,6 +131,7 @@ round(x / rowSums(x) * 100, 2)
 x <- xtabs(~ CHD + F.edu, data = mydata)
 round(x / rowSums(x) * 100, 2)
 mydata$F.edu <- factor(mydata$F.edu, levels = c("4", "3", "2", "1"))
+
 
 # Table 2 ----------------------------------------------------------------------
 # case和control母亲是否接触有毒物质
