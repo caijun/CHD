@@ -67,7 +67,8 @@ mydata <- mydata %>%
     .$M.production.age > 30 ~ ">30",
     TRUE ~ "20~30"
   ))
-mydata$M.production.age <- factor(mydata$M.production.age, levels = c("20~30", "<20", ">30"))
+mydata$M.production.age <- factor(mydata$M.production.age, 
+                                  levels = c("20~30", "<20", ">30"))
 
 x <- xtabs(~ CHD + M.production.age, data = mydata)
 round(x / rowSums(x) * 100, 2)
@@ -143,7 +144,8 @@ mydata <- mydata %>%
     .$F.production.age > 30 ~ ">30",
     TRUE ~ "22~30"
   ))
-mydata$F.production.age <- factor(mydata$F.production.age, levels = c("22~30", "<22", ">30"))
+mydata$F.production.age <- factor(mydata$F.production.age, 
+                                  levels = c("22~30", "<22", ">30"))
 
 x <- xtabs(~ CHD + F.production.age, data = mydata)
 round(x / rowSums(x) * 100, 2)

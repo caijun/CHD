@@ -5,7 +5,7 @@ load("output/case_control_matched.rda")
 library(tidyverse)
 
 # subtypes: VSD, ASD, PDA
-subtype <- "PDA"
+subtype <- "ASD"
 
 if (subtype %in% c("VSD", "ASD", "PDA")) {
   case.m <- case.m %>% 
@@ -44,6 +44,93 @@ controls <- control.m %>%
   arrange(pair.id)
 
 mydata <- rbind(cases, controls)
+
+# Table 1 ----------------------------------------------------------------------
+# case和control年龄范围
+ddply(mydata, ~ CHD, summarise, mean = round(mean(age.y), 2), 
+      sd = round(sd(age.y), 2))
+
+# case和control性别
+x <- xtabs(~ CHD + sex, data = mydata)
+round(x / rowSums(x) * 100, 2)
+
+# case和control试管婴儿
+x <- xtabs(~ CHD + tube.baby, data = mydata)
+round(x / rowSums(x) * 100, 2)
+
+# case和control母亲生子年龄
+ddply(mydata, ~ CHD, summarise, mean = round(mean(M.production.age), 2), 
+      sd = round(sd(M.production.age), 2))
+mydata <- mydata %>%
+  mutate(M.production.age = case_when(
+    .$M.production.age < 20 ~ "<20",
+    .$M.production.age > 30 ~ ">30",
+    TRUE ~ "20~30"
+  ))
+mydata$M.production.age <- factor(mydata$M.production.age, 
+                                  levels = c("20~30", "<20", ">30"))
+x <- xtabs(~ CHD + M.production.age, data = mydata)
+round(x / rowSums(x) * 100, 2)
+
+# case和control是否足月产
+x <- xtabs(~ CHD + term, data = mydata)
+round(x / rowSums(x) * 100, 2)
+mydata$term <- factor(mydata$term, levels = c("1", "0"))
+
+# case和control是否顺产
+x <- xtabs(~ CHD + production.mode, data = mydata)
+round(x / rowSums(x) * 100, 2)
+mydata$production.mode <- factor(mydata$production.mode, levels = c("1", "0"))
+
+# case和control是否流产
+mydata <- mydata %>%
+  mutate(abortion = case_when(
+    .$abortion > 0 ~ "1",
+    TRUE ~ "0"
+  ))
+mydata$abortion <- factor(mydata$abortion, levels = c("0", "1"))
+x <- xtabs(~ CHD + abortion, data = mydata)
+round(x / rowSums(x) * 100, 2)
+
+# case和control生产次数
+x <- xtabs(~ CHD + parity, data = mydata)
+round(x / rowSums(x) * 100, 2)
+mydata$parity <- factor(mydata$parity)
+
+# case和control怀孕次数
+mydata <- mydata %>%
+  mutate(gravidity = case_when(
+    .$gravidity >= 3 ~ ">=3",
+    TRUE ~ as.character(gravidity)
+  ))
+mydata$gravidity <- factor(mydata$gravidity, levels = c("1", "2", ">=3"))
+x <- xtabs(~ CHD + gravidity, data = mydata)
+round(x / rowSums(x) * 100, 2)
+
+# case和control母亲教育水平
+x <- xtabs(~ CHD + M.edu, data = mydata)
+round(x / rowSums(x) * 100, 2)
+mydata$M.edu <- factor(mydata$M.edu, levels = c("4", "3", "2", "1"))
+
+# case和control父亲生子年龄
+ddply(mydata, ~ CHD, summarise, mean = round(mean(F.production.age), 2), 
+      sd = round(sd(F.production.age), 2))
+# 中国男性法定结婚年龄不早于22周岁
+mydata <- mydata %>%
+  mutate(F.production.age = case_when(
+    .$F.production.age < 22 ~ "<22",
+    .$F.production.age > 30 ~ ">30",
+    TRUE ~ "22~30"
+  ))
+mydata$F.production.age <- factor(mydata$F.production.age, 
+                                  levels = c("22~30", "<22", ">30"))
+x <- xtabs(~ CHD + F.production.age, data = mydata)
+round(x / rowSums(x) * 100, 2)
+
+# case和control父亲教育水平
+x <- xtabs(~ CHD + F.edu, data = mydata)
+round(x / rowSums(x) * 100, 2)
+mydata$F.edu <- factor(mydata$F.edu, levels = c("4", "3", "2", "1"))
 
 # Table 2 ----------------------------------------------------------------------
 # case和control母亲是否接触有毒物质
