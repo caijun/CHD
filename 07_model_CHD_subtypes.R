@@ -4,12 +4,17 @@ load("output/case_control_matched.rda")
 
 library(tidyverse)
 
-# subtypes: VSD, ASD, PDA, PS, TOF
-subtype <- "TOF"
+# subtypes: VSD, ASD, PDA, PS, TOF, VSD_ASD
+subtype <- "VSD_ASD"
 
 if (subtype %in% c("VSD", "ASD", "PDA", "PS", "TOF")) {
   case.m <- case.m %>% 
     mutate(CHD = ifelse(grepl(subtype, ignore.case = TRUE, diagnosis), 1, 0))
+} else if (subtype == "VSD_ASD") {
+  case.m <- case.m %>% 
+    mutate(VSD = ifelse(grepl("VSD", ignore.case = TRUE, diagnosis), 1, 0), 
+           ASD = ifelse(grepl("ASD", ignore.case = TRUE, diagnosis), 1, 0)) %>% 
+    mutate(CHD = as.integer(VSD & ASD))
 }
 
 cases <- case.m %>% 
