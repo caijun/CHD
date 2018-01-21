@@ -36,7 +36,7 @@ controls <- control.m %>%
 
 mydata <- rbind(cases, controls)
 
-### Table 1 ###
+# Table 1 ----------------------------------------------------------------------
 library(plyr)
 # case和control年龄范围
 ddply(mydata, ~ CHD, summarise, mean = round(mean(age.y), 2), 
@@ -160,7 +160,8 @@ mylogit <- clogit(CHD ~ F.edu + strata(pair.id), data = mydata)
 summary(mylogit)
 
 # correlation between maternal and paternal production ages
-# since both maternal and paternal production ages are nominal variables, we use Cramer's V to measure their association.
+# since both maternal and paternal production ages are nominal variables, 
+# we use Cramer's V to measure their association.
 library(vcd)
 hist(cases$M.production.age)
 hist(cases$F.production.age)
@@ -186,10 +187,9 @@ mydata1 <- data.frame(M.edu = mydata$M.edu,
                       F.edu = mydata$F.edu)
 x <- xtabs(~ M.edu + F.edu, data = mydata1)
 assocstats(x)
-### Table 1 ###
 
 
-### Table 2 ###
+# Table 2 ----------------------------------------------------------------------
 # case和control母亲是否接触有毒物质
 x <- xtabs(~ CHD + M.toxic.exposure, data = mydata)
 round(x / rowSums(x) * 100, 2)
@@ -398,11 +398,9 @@ mylogit <- clogit(CHD ~ chemical.plant + M.production.age + parity +
                     gravidity + M.edu + strata(pair.id), data = mydata)
 summary(mylogit)
 vif(mylogit)
-### Table 2 ###
 
 
-
-### Table 3 ###
+# Table 3 ----------------------------------------------------------------------
 # case和control母亲孕期是否感冒
 x <- xtabs(~ CHD + M.pregnancy.flu, data = mydata)
 round(x / rowSums(x) * 100, 2)

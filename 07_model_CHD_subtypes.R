@@ -4,8 +4,15 @@ load("output/case_control_matched.rda")
 
 library(tidyverse)
 
+# subtypes: VSD, ASD, PDA
+subtype <- "PDA"
+
+if (subtype %in% c("VSD", "ASD", "PDA")) {
+  case.m <- case.m %>% 
+    mutate(CHD = ifelse(grepl(subtype, ignore.case = TRUE, diagnosis), 1, 0))
+}
+
 cases <- case.m %>% 
-  mutate(CHD = ifelse(grepl("VSD", ignore.case = TRUE, diagnosis), 1, 0)) %>%
   filter(CHD == 1) %>% 
   select(pair.id, CHD, age.y, sex, tube.baby, M.production.age, term, production.mode, 
          abortion, parity, gravidity, M.edu, F.production.age, F.edu, 
@@ -38,7 +45,7 @@ controls <- control.m %>%
 
 mydata <- rbind(cases, controls)
 
-### Table 2 ###
+# Table 2 ----------------------------------------------------------------------
 # case和control母亲是否接触有毒物质
 x <- xtabs(~ CHD + M.toxic.exposure, data = mydata)
 round(x / rowSums(x) * 100, 2)
@@ -250,4 +257,3 @@ mylogit <- clogit(CHD ~ chemical.plant + M.production.age + parity +
                     gravidity + M.edu + strata(pair.id), data = mydata)
 summary(mylogit)
 vif(mylogit)
-### Table 2 ###
