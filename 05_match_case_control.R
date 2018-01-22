@@ -55,10 +55,10 @@ id.lookup <- subset(id.lookup1, control.id %in% control.m$id)
 id.lookup$pair.id <- 1:nrow(id.lookup)
 case.m <- case.m %>% 
   left_join(id.lookup, by = c("id" = "case.id")) %>%
-  select(-control.id)
+  dplyr::select(-control.id)
 control.m <- control.m %>% 
   left_join(id.lookup, by = c("id" = "control.id")) %>%
-  select(-case.id)
+  dplyr::select(-case.id)
 save(case.m, control.m, id.lookup, file = "output/case_control_matched.rda")
 
 # matching criterion of difference in birthday of cases and controls -----------
@@ -82,7 +82,6 @@ x <- case.m %>%
 x1 <- x %>% 
   mutate(birthYMD = as.Date(ISOdate(birthY, birthM, 1)))
 
-library(ggplot2)
 tiff(file = "figs/barplot_case_control_pairs.tiff", width = 10, height = 6, 
      units = "in", res = 300)
 plot.case <- ggplot(x1, aes(x = birthYMD, y = n)) + 
@@ -90,7 +89,9 @@ plot.case <- ggplot(x1, aes(x = birthYMD, y = n)) +
   scale_x_date(date_breaks = "1 year", date_labels = "%Y") + 
   scale_y_continuous(expand = c(0, 0)) + 
   labs(x = "Year", y = "No. of case-control pairs") + 
-  theme_publication()
+  theme_classic(base_size = 14) + 
+  theme(axis.title = element_text(face = "bold"), 
+        panel.grid.major = element_line(colour = "#f0f0f0"))
 print(plot.case)
 dev.off()
 
