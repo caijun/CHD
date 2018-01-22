@@ -5,7 +5,7 @@ load("output/case_control_matched.rda")
 library(tidyverse)
 
 # subtypes: VSD, ASD, PDA, PS, TOF, TGA, CAVC, COA, TAPVC, VSD_ASD, multiple_defects
-subtype <- "TAPVC"
+subtype <- "ASD"
 
 if (subtype %in% c("VSD", "ASD", "PDA", "PS", "TOF", "TGA", "CAVC", "COA", "TAPVC")) {
   case.m <- case.m %>% 
@@ -352,6 +352,115 @@ round(x / rowSums(x) * 100, 2)
 
 mydata$chemical.plant <- factor(mydata$chemical.plant)
 mylogit <- clogit(CHD ~ chemical.plant + M.production.age + parity + 
+                    gravidity + M.edu + strata(pair.id), data = mydata)
+summary(mylogit)
+vif(mylogit)
+
+
+# Table 3 ----------------------------------------------------------------------
+# case和control母亲孕期是否感冒
+x <- xtabs(~ CHD + M.pregnancy.flu, data = mydata)
+round(x / rowSums(x) * 100, 2)
+
+mydata$M.pregnancy.flu <- factor(mydata$M.pregnancy.flu)
+mylogit <- clogit(CHD ~ M.pregnancy.flu + M.production.age + parity + 
+                    gravidity + M.edu + strata(pair.id), data = mydata)
+summary(mylogit)
+vif(mylogit)
+
+# case和control母亲孕期感冒时期:月
+mydata <- mydata %>%
+  mutate(M.pregnancy.flu.time = case_when(
+    .$M.pregnancy.flu.time == 0 ~ "NONE",
+    .$M.pregnancy.flu.time %in% c(1, 2, 3) ~ "Early",
+    .$M.pregnancy.flu.time %in% c(4, 5, 6) ~ "Middle",
+    .$M.pregnancy.flu.time %in% c(7, 8, 9, 10) ~ "Late"
+  ))
+mydata$M.pregnancy.flu.time <- factor(mydata$M.pregnancy.flu.time, 
+                                      levels = c("NONE", "Early", "Middle", "Late"))
+
+x <- xtabs(~ CHD + M.pregnancy.flu.time, data = mydata)
+round(x / rowSums(x) * 100, 2)
+
+mylogit <- clogit(CHD ~ M.pregnancy.flu.time + M.production.age + parity + 
+                    gravidity + M.edu + strata(pair.id), data = mydata)
+summary(mylogit)
+vif(mylogit)
+
+# case和control母亲有无孕期合并症
+x <- xtabs(~ CHD + M.pregnancy.complication, data = mydata)
+round(x / rowSums(x) * 100, 2)
+
+mydata$M.pregnancy.complication <- factor(mydata$M.pregnancy.complication)
+mylogit <- clogit(CHD ~ M.pregnancy.complication + M.production.age + parity + 
+                    gravidity + M.edu + strata(pair.id), data = mydata)
+summary(mylogit)
+vif(mylogit)
+
+# case和control母亲孕期是否用药
+x <- xtabs(~ CHD + M.pregnancy.med, data = mydata)
+round(x / rowSums(x) * 100, 2)
+
+mydata$M.pregnancy.med <- factor(mydata$M.pregnancy.med)
+mylogit <- clogit(CHD ~ M.pregnancy.med + M.production.age + parity + 
+                    gravidity + M.edu + strata(pair.id), data = mydata)
+summary(mylogit)
+vif(mylogit)
+
+# case和control母亲孕期用药时期:月
+mydata <- mydata %>%
+  mutate(M.pregnancy.med.time = case_when(
+    .$M.pregnancy.med.time == 0 ~ "NONE",
+    .$M.pregnancy.med.time %in% c(1, 2, 3) ~ "Early",
+    .$M.pregnancy.med.time %in% c(4, 5, 6) ~ "Middle",
+    .$M.pregnancy.med.time %in% c(7, 8, 9, 10) ~ "Late"
+  ))
+mydata$M.pregnancy.med.time <- factor(mydata$M.pregnancy.med.time, 
+                                      levels = c("NONE", "Early", "Middle", "Late"))
+
+x <- xtabs(~ CHD + M.pregnancy.med.time, data = mydata)
+round(x / rowSums(x) * 100, 2)
+
+mylogit <- clogit(CHD ~ M.pregnancy.med.time + M.production.age + parity + 
+                    gravidity + M.edu + strata(pair.id), data = mydata)
+summary(mylogit)
+vif(mylogit)
+
+# case和control母亲孕期使用何种药物
+# no cases and controls took Antitumor drug
+table(mydata$M.pregnancy.med.name, useNA = "ifany")
+full.levels <- c("NONE", "Antibiotics", 
+                 "Diet pill", "Antidepressant", 
+                 "Antitumor drug", 
+                 "Tocolytic agent", "Analgesics", 
+                 "Tranquilizer")
+actual.levels <- levels(factor(mydata$M.pregnancy.med.name))
+mydata$M.pregnancy.med.name <- factor(mydata$M.pregnancy.med.name, 
+                                      levels = intersect(full.levels, actual.levels))
+x <- xtabs(~ CHD + M.pregnancy.med.name, data = mydata)
+round(x / rowSums(x) * 100, 2)
+
+mylogit <- clogit(CHD ~ M.pregnancy.med.name + M.production.age + parity + 
+                    gravidity + M.edu + strata(pair.id), data = mydata)
+summary(mylogit)
+vif(mylogit)
+
+# case和control母亲孕前1-3月是否口服避孕药
+x <- xtabs(~ CHD + M.oral.contraceptive, data = mydata)
+round(x / rowSums(x) * 100, 2)
+
+mydata$M.oral.contraceptive <- factor(mydata$M.oral.contraceptive)
+mylogit <- clogit(CHD ~ M.oral.contraceptive + M.production.age + parity + 
+                    gravidity + M.edu + strata(pair.id), data = mydata)
+summary(mylogit)
+vif(mylogit)
+
+# case和control母亲孕期是否使用叶酸
+x <- xtabs(~ CHD + M.pregnancy.folic.acid, data = mydata)
+round(x / rowSums(x) * 100, 2)
+
+mydata$M.pregnancy.folic.acid <- factor(mydata$M.pregnancy.folic.acid)
+mylogit <- clogit(CHD ~ M.pregnancy.folic.acid + M.production.age + parity + 
                     gravidity + M.edu + strata(pair.id), data = mydata)
 summary(mylogit)
 vif(mylogit)
