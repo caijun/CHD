@@ -4,24 +4,76 @@ load("output/case_control_matched.rda")
 
 library(tidyverse)
 
-case.m$CHD <- 1
-control.m$CHD <- 0
-CHD <- c(case.m$CHD, control.m$CHD)
-M.edu <- c(case.m$M.edu, control.m$M.edu)
-F.smoke <- c(case.m$F.smoke, control.m$F.smoke)
-M.drink <- c(case.m$M.drink, control.m$M.drink)
-M.pregnancy.flu <- c(case.m$M.pregnancy.flu, control.m$M.pregnancy.flu)
-M.pregnancy.med <- c(case.m$M.pregnancy.med, control.m$M.pregnancy.med)
-M.production.age <- c(case.m$M.production.age, control.m$M.production.age)
-parity <- c(case.m$parity, control.m$parity)
-gravidity <- c(case.m$gravidity, control.m$gravidity)
+cases <- case.m %>% 
+  mutate(CHD = 1) %>% 
+  dplyr::select(pair.id, CHD, M.production.age, parity, gravidity, M.edu, M.smoke, 
+         M.pregnancy.smoke, M.drink, M.pregnancy.flu, M.pregnancy.med, 
+         M.oral.contraceptive) %>% 
+  arrange(pair.id)
 
-mydata <- data.frame(CHD, M.edu, F.smoke, M.drink, M.pregnancy.flu, M.pregnancy.med, 
-                     M.production.age, parity, gravidity)
-unique(mydata$M.edu)
-table(mydata$M.edu)
+controls <- control.m %>% 
+  mutate(CHD = 0) %>% 
+  dplyr::select(pair.id, CHD, M.production.age, parity, gravidity, M.edu, M.smoke, 
+         M.pregnancy.smoke, M.drink, M.pregnancy.flu, M.pregnancy.med, 
+         M.oral.contraceptive) %>% 
+  arrange(pair.id)
+
+mydata <- rbind(cases, controls)
+
+# 母亲生子年龄
+ddply(mydata, ~ CHD, summarise, mean = round(mean(M.production.age), 2), 
+      sd = round(sd(M.production.age), 2))
+mydata <- mydata %>%
+  mutate(M.production.age = case_when(
+    .$M.production.age < 20 ~ "<20",
+    .$M.production.age > 30 ~ ">30",
+    TRUE ~ "20~30"
+  ))
+mydata$M.production.age <- factor(mydata$M.production.age, 
+                                  levels = c("20~30", "<20", ">30"))
+table(mydata$M.production.age, useNA = "ifany")
+
+# 生产次数
+mydata$parity <- factor(mydata$parity)
+table(mydata$parity, useNA = "ifany")
+
+# 怀孕次数
+table(mydata$gravidity, useNA = "ifany")
+mydata <- mydata %>%
+  mutate(gravidity = case_when(
+    .$gravidity >= 3 ~ ">=3",
+    TRUE ~ as.character(gravidity)
+  ))
+mydata$gravidity <- factor(mydata$gravidity, levels = c("1", "2", ">=3"))
+table(mydata$gravidity, useNA = "ifany")
+
+# 母亲教育水平
+table(mydata$M.edu, useNA = "ifany")
 mydata$M.edu1 <- ifelse(mydata$M.edu %in% c(1, 2, 3), 1, 0)
-mydata$n.exp <- rowSums(mydata[, c("M.edu1", "F.smoke", "M.drink", "M.pregnancy.flu", "M.pregnancy.med")])
+table(mydata$M.edu1, useNA = "ifany")
+
+# 母亲是否吸烟
+table(mydata$M.smoke, useNA = "ifany")
+
+# 母亲孕期是否吸烟
+table(mydata$M.pregnancy.smoke, useNA = "ifany")
+
+# 母亲是否喝酒
+table(mydata$M.drink, useNA = "ifany")
+
+# 母亲孕期是否感冒
+table(mydata$M.pregnancy.flu, useNA = "ifany")
+
+# 母亲孕期是否用药
+table(mydata$M.pregnancy.med, useNA = "ifany")
+
+# 母亲孕前1-3月是否口服避孕药
+table(mydata$M.oral.contraceptive, useNA = "ifany")
+
+# number of exposures
+mydata$n.exp <- rowSums(mydata[, c("M.edu1", "M.smoke", "M.pregnancy.smoke", 
+                                   "M.drink", "M.pregnancy.flu", "M.pregnancy.med", 
+                                   "M.oral.contraceptive")])
 
 # case和control暴露风险因子个数
 x <- xtabs(~ CHD + n.exp, data = mydata)
@@ -36,20 +88,17 @@ mydata <- mydata %>%
   ))
 mydata$n.exp <- factor(mydata$n.exp, levels = c("0", "1", ">=2"))
 
-mylogit <- glm(CHD ~ n.exp, data = mydata, family = "binomial")
+library(survival)
+mylogit <- clogit(CHD ~ n.exp + M.production.age + parity + 
+                    gravidity + strata(pair.id), data = mydata)
 summary(mylogit)
-## odds ratios and 95% CI
-exp(cbind(OR = coef(mylogit), confint(mylogit)))
-# adjusted odds ratios and 95% CI
-mylogit1 <- glm(CHD ~ n.exp + M.production.age + parity + gravidity, 
-                data = mydata, family = "binomial")
-summary(mylogit1)
-res <- exp(cbind(OR = coef(mylogit1), confint(mylogit1)))
+res <- exp(cbind(OR = coef(mylogit), confint(mylogit)))
 library(car)
-vif(mylogit1)
+vif(mylogit)
 
 library(multcomp)
-CHD.aov <- aov(CHD ~ n.exp + M.production.age + parity + gravidity, data = mydata)
+CHD.aov <- aov(CHD ~ n.exp + M.production.age + parity + gravidity + strata(pair.id), 
+               data = mydata)
 # multiple comparisions with a control
 CHD.mc <- glht(CHD.aov, linfct = mcp(n.exp = "Dunnett"), alternative = "greater")
 # all pairwise comparision
@@ -71,11 +120,11 @@ summary(CHD.mc3, test = adjusted(type = "single-step"))
 
 # plot
 pd <- data.frame(group = factor(c("0", "1", ">=2"), levels = c("0", "1", ">=2")), 
-                 aORs = c(1, res[2:3, 1]), 
-                 ci.l = c(NA, res[2:3, 2]), 
-                 ci.u = c(NA, res[2:3, 3]))
+                 aORs = c(1, res[1:2, 1]), 
+                 ci.l = c(NA, res[1:2, 2]), 
+                 ci.u = c(NA, res[1:2, 3]))
 
-tiff(file = "fig/barplot.tiff", width = 5, height = 5, units = "in", res = 300)
+tiff(file = "figs/barplot.tiff", width = 5, height = 5, units = "in", res = 300)
 p <- ggplot(pd, aes(group, aORs)) + 
   geom_bar(aes(fill = "grey"), stat = "identity", width = .5) + 
   geom_errorbar(aes(ymin = ci.l, ymax = ci.u), width = 0.1, color = "grey30") + 
@@ -87,19 +136,20 @@ p <- ggplot(pd, aes(group, aORs)) +
   scale_fill_manual(values = c("grey60")) + 
   theme_classic() + 
   theme(legend.position = "none", 
-        panel.grid = element_blank())
+        panel.grid = element_blank(), 
+        axis.title = element_text(face = "bold"))
 
-# # define arc coordinates
-label.df <- data.frame(group = c(1.505, 2.5, 2), aORs = c(2.17, 3.28, 3.59))
-p1 <- p + geom_text(data = label.df, aes(group, aORs), label = c("*", "***", "***"))
+# define arc coordinates
+label.df <- data.frame(group = c(1.503, 2.5, 2), aORs = c(2.05, 3.05, 3.35))
+p1 <- p + geom_text(data = label.df, aes(group, aORs), label = c("***", "***", "***"))
 p1
 
 library(pBrackets)
 # 0 - 1
-grid.brackets(93, 175, 193, 175, lwd = 1, type = 4)
+grid.brackets(93, 185, 193, 185, lwd = 1, type = 4)
 # 1 - >=2
-grid.brackets(193, 85, 294, 85, lwd = 1, type = 4)
+grid.brackets(193, 105, 294, 105, lwd = 1, type = 4)
 # 0 - >=2
-grid.brackets(93, 60, 294, 60, lwd = 1, type = 4)
+grid.brackets(93, 80, 294, 80, lwd = 1, type = 4)
 
 dev.off()

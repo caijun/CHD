@@ -20,12 +20,6 @@ if (subtype %in% c("VSD", "ASD", "PDA", "PS", "TOF", "TGA", "CAVC", "COA", "TAPV
   case.m <- case.m %>% 
     mutate(CHD = ifelse(grepl("睾|裂|疝|发育|胸|脑|癫痫|肾|食道|肛门|闭锁|眼|畸|瘘", 
                               ignore.case = TRUE, diagnosis), 1, 0))
-  
-  library(xlsx)
-  x <- subset(case.m, CHD == 1)
-  write.xlsx(x, file = "output/check_multiple_defects.xlsx")
-  y <- subset(case.m, CHD == 0)
-  write.xlsx(y, file = "output/check_multiple_defects_no.xlsx")
 }
 
 cases <- case.m %>% 

@@ -85,8 +85,6 @@ unique(dat$residence)
 dat <- dat %>%
   mutate(residence = gsub(" ", "", residence))
 unique(dat$residence)
-write.csv(unique(dat$residence), file = "output/control_residence.csv", row.names = F, 
-          quote = F)
 residence <- read.csv("data/case_control_residence_fix.csv", fileEncoding = "utf8")
 setdiff(unique(dat$residence), residence$residence)
 # extract residence county

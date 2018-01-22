@@ -86,8 +86,6 @@ unique(dat$residence)
 dat <- dat %>%
   mutate(residence = gsub(" ", "", residence))
 unique(dat$residence)
-write.csv(unique(dat$residence), file = "output/case_residence.csv", row.names = F, 
-          quote = F)
 # residence <- read.csv("case_residence_fix.csv", fileEncoding = "cp936")
 residence <- read.csv("data/case_control_residence_fix.csv", fileEncoding = "utf8")
 x <- as.data.frame(table(residence$residence))
