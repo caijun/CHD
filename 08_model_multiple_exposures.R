@@ -1,9 +1,8 @@
 rm(list = ls())
-setwd("~/Downloads/FengYu/")
+
+load("output/case_control_matched.rda")
 
 library(tidyverse)
-
-load("dat/case_control_matched.rda")
 
 case.m$CHD <- 1
 control.m$CHD <- 0
