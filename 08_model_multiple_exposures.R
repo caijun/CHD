@@ -7,15 +7,13 @@ library(tidyverse)
 cases <- case.m %>% 
   mutate(CHD = 1) %>% 
   dplyr::select(pair.id, CHD, M.production.age, parity, gravidity, M.edu, M.smoke, 
-         M.pregnancy.smoke, M.drink, M.pregnancy.flu, M.pregnancy.med, 
-         M.oral.contraceptive) %>% 
+                M.drink, M.pregnancy.flu, M.med) %>% 
   arrange(pair.id)
 
 controls <- control.m %>% 
   mutate(CHD = 0) %>% 
   dplyr::select(pair.id, CHD, M.production.age, parity, gravidity, M.edu, M.smoke, 
-         M.pregnancy.smoke, M.drink, M.pregnancy.flu, M.pregnancy.med, 
-         M.oral.contraceptive) %>% 
+                M.drink, M.pregnancy.flu, M.med) %>% 
   arrange(pair.id)
 
 mydata <- rbind(cases, controls)
@@ -55,25 +53,18 @@ table(mydata$M.edu1, useNA = "ifany")
 # 母亲是否吸烟
 table(mydata$M.smoke, useNA = "ifany")
 
-# 母亲孕期是否吸烟
-table(mydata$M.pregnancy.smoke, useNA = "ifany")
-
 # 母亲是否喝酒
 table(mydata$M.drink, useNA = "ifany")
 
 # 母亲孕期是否感冒
 table(mydata$M.pregnancy.flu, useNA = "ifany")
 
-# 母亲孕期是否用药
-table(mydata$M.pregnancy.med, useNA = "ifany")
-
-# 母亲孕前1-3月是否口服避孕药
-table(mydata$M.oral.contraceptive, useNA = "ifany")
+# 母亲是否用药
+table(mydata$M.med, useNA = "ifany")
 
 # number of exposures
-mydata$n.exp <- rowSums(mydata[, c("M.edu1", "M.smoke", "M.pregnancy.smoke", 
-                                   "M.drink", "M.pregnancy.flu", "M.pregnancy.med", 
-                                   "M.oral.contraceptive")])
+mydata$n.exp <- rowSums(mydata[, c("M.edu1", "M.smoke", "M.drink", 
+                                   "M.pregnancy.flu", "M.med")])
 
 # case和control暴露风险因子个数
 x <- xtabs(~ CHD + n.exp, data = mydata)
@@ -140,7 +131,7 @@ p <- ggplot(pd, aes(group, aORs)) +
         axis.title = element_text(face = "bold"))
 
 # define arc coordinates
-label.df <- data.frame(group = c(1.503, 2.5, 2), aORs = c(2.05, 3.05, 3.35))
+label.df <- data.frame(group = c(1.503, 2.5, 2), aORs = c(2.05, 3.05, 3.36))
 p1 <- p + geom_text(data = label.df, aes(group, aORs), label = c("***", "***", "***"))
 p1
 

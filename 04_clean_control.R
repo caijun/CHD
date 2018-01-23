@@ -407,6 +407,11 @@ dat <- dat %>%
   ))
 table(dat$M.oral.contraceptive, useNA = "ifany")
 
+# 母亲孕前1-3月是否口服避孕药以及母亲孕期是否用药合并为母亲是否用药
+dat <- dat %>% 
+  mutate(M.med = as.integer(M.pregnancy.med | M.oral.contraceptive))
+table(dat$M.med, useNA = "ifany")
+
 # 父亲生子年龄
 unique(dat$F.production.age)
 table(dat$F.production.age, useNA = "ifany")

@@ -5,7 +5,7 @@ load("output/case_control_matched.rda")
 library(tidyverse)
 
 # subtypes: VSD, ASD, PDA, PS, TOF, TGA, CAVC, COA, TAPVC, VSD_ASD, multiple_defects
-subtype <- "multiple_defects"
+subtype <- "VSD"
 
 if (subtype %in% c("VSD", "ASD", "PDA", "PS", "TOF", "TGA", "CAVC", "COA", "TAPVC")) {
   case.m <- case.m %>% 
@@ -32,7 +32,7 @@ cases <- case.m %>%
          F.smoke, F.smoked.years, F.smoke.freq, 
          M.drink, F.drink, decoration, HV.cable, chemical.plant, 
          M.pregnancy.flu, M.pregnancy.flu.time, 
-         M.pregnancy.complication, M.pregnancy.med, 
+         M.pregnancy.complication, M.med, M.pregnancy.med, 
          M.pregnancy.med.time, M.pregnancy.med.name, M.pregnancy.folic.acid, 
          M.oral.contraceptive) %>% 
   arrange(pair.id)
@@ -48,7 +48,7 @@ controls <- control.m %>%
          F.smoke, F.smoked.years, F.smoke.freq, 
          M.drink, F.drink, decoration, HV.cable, chemical.plant, 
          M.pregnancy.flu, M.pregnancy.flu.time, 
-         M.pregnancy.complication, M.pregnancy.med, 
+         M.pregnancy.complication, M.med, M.pregnancy.med, 
          M.pregnancy.med.time, M.pregnancy.med.name, M.pregnancy.folic.acid, 
          M.oral.contraceptive) %>% 
   arrange(pair.id)
@@ -393,6 +393,16 @@ round(x / rowSums(x) * 100, 2)
 
 mydata$M.pregnancy.complication <- factor(mydata$M.pregnancy.complication)
 mylogit <- clogit(CHD ~ M.pregnancy.complication + M.production.age + parity + 
+                    gravidity + M.edu + strata(pair.id), data = mydata)
+summary(mylogit)
+vif(mylogit)
+
+# case和control母亲是否用药
+x <- xtabs(~ CHD + M.med, data = mydata)
+round(x / rowSums(x) * 100, 2)
+
+mydata$M.med <- factor(mydata$M.med)
+mylogit <- clogit(CHD ~ M.med + M.production.age + parity + 
                     gravidity + M.edu + strata(pair.id), data = mydata)
 summary(mylogit)
 vif(mylogit)
