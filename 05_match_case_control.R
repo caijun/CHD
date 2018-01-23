@@ -126,3 +126,5 @@ y2 <- control.m %>%
 # case手术日期范围和control调查日期范围
 range(case.m$surgery.date)
 range(control.m$input.date)
+
+

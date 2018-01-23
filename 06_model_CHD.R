@@ -6,7 +6,7 @@ library(tidyverse)
 
 cases <- case.m %>% 
   mutate(CHD = 1) %>% 
-  select(pair.id, CHD, age.y, sex, tube.baby, M.production.age, term, production.mode, 
+  dplyr::select(pair.id, CHD, age.y, sex, tube.baby, M.production.age, term, production.mode, 
          abortion, parity, gravidity, M.edu, F.production.age, F.edu, 
          M.toxic.exposure, M.radioactive.exposure, M.smoke, M.smoked.years, M.smoke.freq, 
          M.pregnancy.smoke, 
@@ -21,7 +21,7 @@ cases <- case.m %>%
 
 controls <- control.m %>% 
   mutate(CHD = 0) %>% 
-  select(pair.id, CHD, age.y, sex, tube.baby, M.production.age, term, production.mode, 
+  dplyr::select(pair.id, CHD, age.y, sex, tube.baby, M.production.age, term, production.mode, 
          abortion, parity, gravidity, M.edu, F.production.age, F.edu, 
          M.toxic.exposure, M.radioactive.exposure, M.smoke, M.smoked.years, M.smoke.freq, 
          M.pregnancy.smoke, 
