@@ -14,35 +14,8 @@ idx <- grepl("Down|愚|三体锁", ignore.case = TRUE, case$diagnosis)
 Down <- case[idx, ]
 case <- case[!idx, ]
 
-match <- function(control.df) {
-  control.id <- control.df$id
-  x <- subset(case, sex == control.df$sex & province == control.df$province & prefecture == control.df$prefecture & abs(birthYMD - control.df$birthYMD) <= 15)
-  x <- x[!x$id %in% id.lookup$case.id, ]
-  if (nrow(x) == 0) {
-    case.id <- NA
-  } else if (nrow(x) == 1) {
-    case.id <- x$id
-  } else {
-    x1 <- subset(x, !is.na(county) & county == control.df$county)
-    if (nrow(x1) == 0) {
-      idx <- which.min(abs(x$birthYMD - control.df$birthYMD))
-      case.id <- x[idx, "id"]
-    } else if (nrow(x1) == 1) {
-      case.id <- x1$id
-    } else {
-      idx <- which.min(abs(x1$birthYMD - control.df$birthYMD))
-      case.id <- x1[idx, "id"]
-    }
-  }
-  return(data.frame(control.id, case.id))
-}
-
-id.lookup <- data.frame(control.id = NULL, case.id = NULL)
-for (i in 1:nrow(control)) {
-  control.idx <- control[i, ]
-  ret <- match(control.idx)
-  id.lookup <- rbind(id.lookup, ret)
-}
+# match controls with cases
+id.lookup <- match(control, case, birthYMD.threshold = 15)
 id.lookup1 <- subset(id.lookup, !is.na(case.id))
 
 case.m <- subset(case, id %in% id.lookup1$case.id)
