@@ -88,26 +88,23 @@ library(car)
 vif(mylogit)
 
 library(multcomp)
-CHD.aov <- aov(CHD ~ n.exp + M.production.age + parity + gravidity + strata(pair.id), 
-               data = mydata)
-# multiple comparisions with a control
-CHD.mc <- glht(CHD.aov, linfct = mcp(n.exp = "Dunnett"), alternative = "greater")
 # all pairwise comparision
-CHD.mc <- glht(CHD.aov, linfct = mcp(n.exp = "Tukey"), alternative = "greater")
+CHD.mc <- glht(mylogit, linfct = mcp(n.exp = "Tukey"), alternative = "greater")
 summary(CHD.mc, test = adjusted(type = "none"))
 summary(CHD.mc, test = adjusted(type = "bonferroni"))
 # summary(CHD.mc, test = adjusted(type = "single-step"))
 # summary(CHD.mc, test = adjusted(type = "free"))
 plot(CHD.mc)
 
-# dose response analyses
+# dose response analysis
 # detect a dose related trend
 # trend test: test for a dose reponse effect
-CHD.mc2 <- glht(CHD.aov, linfct = mcp(n.exp = "Williams"), alternative = "greater")
+CHD.mc2 <- glht(mylogit, linfct = mcp(n.exp = "Williams"), alternative = "greater")
 summary(CHD.mc2, test = adjusted(type = "single-step"))
 
-CHD.mc3 <- glht(CHD.aov, linfct = mcp(n.exp = "Marcus"), alternative = "greater")
+CHD.mc3 <- glht(mylogit, linfct = mcp(n.exp = "Marcus"), alternative = "greater")
 summary(CHD.mc3, test = adjusted(type = "single-step"))
+
 
 # plot
 pd <- data.frame(group = factor(c("0", "1", ">=2"), levels = c("0", "1", ">=2")), 

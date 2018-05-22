@@ -35,6 +35,7 @@ controls <- control.m %>%
   arrange(pair.id)
 
 mydata <- rbind(cases, controls)
+save(mydata, file = "~/Documents/TeX/beamer/china-r_2018/data/CHD.rda")
 
 # Table 1 ----------------------------------------------------------------------
 library(plyr)
