@@ -66,10 +66,6 @@ table(mydata$M.med, useNA = "ifany")
 mydata$n.exp <- rowSums(mydata[, c("M.edu1", "M.smoke", "M.drink", 
                                    "M.pregnancy.flu", "M.med")])
 
-# case和control暴露风险因子个数
-x <- xtabs(~ CHD + n.exp, data = mydata)
-round(x / rowSums(x) * 100, 2)
-
 mydata <- mydata %>%
   mutate(n.exp = as.character(n.exp)) %>%
   mutate(n.exp = case_when(
@@ -79,6 +75,10 @@ mydata <- mydata %>%
   ))
 mydata$n.exp <- factor(mydata$n.exp, levels = c("0", "1", ">=2"))
 
+# case和control暴露风险因子个数
+x <- xtabs(~ CHD + n.exp, data = mydata)
+round(x / rowSums(x) * 100, 2)
+
 library(survival)
 mylogit <- clogit(CHD ~ n.exp + M.production.age + parity + 
                     gravidity + strata(pair.id), data = mydata)
@@ -86,8 +86,16 @@ summary(mylogit)
 res <- exp(cbind(OR = coef(mylogit), confint(mylogit)))
 library(car)
 vif(mylogit)
+save(mydata, mylogit, file = "~/Documents/TeX/beamer/china-r_2018/data/mcp.rda")
 
 library(multcomp)
+# contrast matrices
+n <- c(619, 2179, 2118)
+names(n) <- c("0", "1", ">=2")
+contrMat(n, type = "Tukey")
+contrMat(n, type = "Williams")
+contrMat(n, type = "Marcus")
+
 # all pairwise comparision
 CHD.mc <- glht(mylogit, linfct = mcp(n.exp = "Tukey"), alternative = "greater")
 summary(CHD.mc, test = adjusted(type = "none"))
@@ -96,14 +104,15 @@ summary(CHD.mc, test = adjusted(type = "bonferroni"))
 # summary(CHD.mc, test = adjusted(type = "free"))
 plot(CHD.mc)
 
-# dose response analysis
+# dose-response analysis
 # detect a dose related trend
 # trend test: test for a dose reponse effect
 CHD.mc2 <- glht(mylogit, linfct = mcp(n.exp = "Williams"), alternative = "greater")
-summary(CHD.mc2, test = adjusted(type = "single-step"))
+summary(CHD.mc2, test = adjusted(type = "bonferroni"))
+plot(CHD.mc2)
 
 CHD.mc3 <- glht(mylogit, linfct = mcp(n.exp = "Marcus"), alternative = "greater")
-summary(CHD.mc3, test = adjusted(type = "single-step"))
+summary(CHD.mc3, test = adjusted(type = "bonferroni"))
 
 
 # plot
