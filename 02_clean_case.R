@@ -73,13 +73,10 @@ dat <- dat %>%
   filter(!is.na(surgery.date))
 range(dat$surgery.date)
 # daily number of surgeries
-full.date <- seq.Date(range(dat$surgery.date)[1], range(dat$surgery.date)[2], 
-                      by = "day")
-dno <- plyr::ldply(full.date, function(d) {
-  df <- subset(dat, surgery.date == d)
-  return(data.frame(date = d, no = nrow(df)))
-})
-plot(dno$date, dno$no, type = "l", xlab = "Date", ylab = "No. of surgeries")
+library(incidence)
+dno <- incidence(dat$surgery.date)
+plot(dno) + 
+  labs(y = "Daily no. of surgeries")
 
 # 居住地
 unique(dat$residence)

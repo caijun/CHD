@@ -72,13 +72,10 @@ dat <- dat %>%
   filter(!is.na(input.date))
 range(dat$input.date)
 # daily number of inputs
-full.date <- seq.Date(range(dat$input.date)[1], range(dat$input.date)[2], 
-                      by = "day")
-dno <- plyr::ldply(full.date, function(d) {
-  df <- subset(dat, input.date == d)
-  return(data.frame(date = d, no = nrow(df)))
-})
-plot(dno$date, dno$no, type = "l", xlab = "Date", ylab = "No. of inputs")
+library(incidence)
+dno <- incidence(dat$input.date)
+plot(dno) + 
+  labs(y = "Daily no. of inputs")
 
 # 居住地
 unique(dat$residence)
